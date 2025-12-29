@@ -12,26 +12,26 @@ export class Levee {
   private timeout: number;
 
 
+  readonly stats: StatsResource;
+  readonly webhooks: WebhooksResource;
   readonly auth: AuthResource;
   readonly content: ContentResource;
-  readonly customers: CustomersResource;
+  readonly orders: OrdersResource;
+  readonly workshops: WorkshopsResource;
+  readonly emails: EmailsResource;
   readonly llm: LlmResource;
-  readonly webhooks: WebhooksResource;
+  readonly sequences: SequencesResource;
+  readonly contacts: ContactsResource;
   readonly events: EventsResource;
   readonly lists: ListsResource;
-  readonly stats: StatsResource;
-  readonly products: ProductsResource;
-  readonly billing: BillingResource;
-  readonly emails: EmailsResource;
-  readonly sequences: SequencesResource;
-  readonly site: SiteResource;
-  readonly contacts: ContactsResource;
   readonly offers: OffersResource;
-  readonly orders: OrdersResource;
-  readonly quizzes: QuizzesResource;
+  readonly site: SiteResource;
   readonly tracking: TrackingResource;
   readonly funnels: FunnelsResource;
-  readonly workshops: WorkshopsResource;
+  readonly products: ProductsResource;
+  readonly quizzes: QuizzesResource;
+  readonly billing: BillingResource;
+  readonly customers: CustomersResource;
 
   /**
    * Create a new Levee API client.
@@ -47,26 +47,26 @@ export class Levee {
     this.timeout = options.timeout ?? 30000;
 
 
+    this.stats = new StatsResource(this);
+    this.webhooks = new WebhooksResource(this);
     this.auth = new AuthResource(this);
     this.content = new ContentResource(this);
-    this.customers = new CustomersResource(this);
+    this.orders = new OrdersResource(this);
+    this.workshops = new WorkshopsResource(this);
+    this.emails = new EmailsResource(this);
     this.llm = new LlmResource(this);
-    this.webhooks = new WebhooksResource(this);
+    this.sequences = new SequencesResource(this);
+    this.contacts = new ContactsResource(this);
     this.events = new EventsResource(this);
     this.lists = new ListsResource(this);
-    this.stats = new StatsResource(this);
-    this.products = new ProductsResource(this);
-    this.billing = new BillingResource(this);
-    this.emails = new EmailsResource(this);
-    this.sequences = new SequencesResource(this);
-    this.site = new SiteResource(this);
-    this.contacts = new ContactsResource(this);
     this.offers = new OffersResource(this);
-    this.orders = new OrdersResource(this);
-    this.quizzes = new QuizzesResource(this);
+    this.site = new SiteResource(this);
     this.tracking = new TrackingResource(this);
     this.funnels = new FunnelsResource(this);
-    this.workshops = new WorkshopsResource(this);
+    this.products = new ProductsResource(this);
+    this.quizzes = new QuizzesResource(this);
+    this.billing = new BillingResource(this);
+    this.customers = new CustomersResource(this);
   }
 
   async request<T>(method: string, path: string, body?: unknown, query?: Record<string, string>): Promise<T> {
@@ -110,6 +110,164 @@ export class Levee {
       throw err;
     }
   }
+}
+
+
+class StatsResource {
+  constructor(private client: Levee) {}
+
+
+  /**
+   * 
+   */
+  async getContactStats(startDate?: string, endDate?: string, groupBy?: string): Promise<types.GetContactStatsResponse> {
+    const query: Record<string, string> = {};
+    if (startDate !== undefined) query['start_date'] = String(startDate);
+    if (endDate !== undefined) query['end_date'] = String(endDate);
+    if (groupBy !== undefined) query['group_by'] = String(groupBy);
+    return this.client.request<types.GetContactStatsResponse>(
+      'GET',
+      '/sdk/v1/stats/contacts',
+      undefined,
+      query
+    );
+  }
+
+  /**
+   * 
+   */
+  async getEmailStats(startDate?: string, endDate?: string, groupBy?: string): Promise<types.GetEmailStatsResponse> {
+    const query: Record<string, string> = {};
+    if (startDate !== undefined) query['start_date'] = String(startDate);
+    if (endDate !== undefined) query['end_date'] = String(endDate);
+    if (groupBy !== undefined) query['group_by'] = String(groupBy);
+    return this.client.request<types.GetEmailStatsResponse>(
+      'GET',
+      '/sdk/v1/stats/emails',
+      undefined,
+      query
+    );
+  }
+
+  /**
+   * 
+   */
+  async getStatsOverview(startDate?: string, endDate?: string): Promise<types.StatsOverviewResponse> {
+    const query: Record<string, string> = {};
+    if (startDate !== undefined) query['start_date'] = String(startDate);
+    if (endDate !== undefined) query['end_date'] = String(endDate);
+    return this.client.request<types.StatsOverviewResponse>(
+      'GET',
+      '/sdk/v1/stats/overview',
+      undefined,
+      query
+    );
+  }
+
+  /**
+   * 
+   */
+  async getRevenueStats(startDate?: string, endDate?: string, groupBy?: string): Promise<types.GetRevenueStatsResponse> {
+    const query: Record<string, string> = {};
+    if (startDate !== undefined) query['start_date'] = String(startDate);
+    if (endDate !== undefined) query['end_date'] = String(endDate);
+    if (groupBy !== undefined) query['group_by'] = String(groupBy);
+    return this.client.request<types.GetRevenueStatsResponse>(
+      'GET',
+      '/sdk/v1/stats/revenue',
+      undefined,
+      query
+    );
+  }
+
+}
+
+
+class WebhooksResource {
+  constructor(private client: Levee) {}
+
+
+  /**
+   * 
+   */
+  async registerWebhook(request: types.RegisterWebhookRequest): Promise<types.RegisterWebhookResponse> {
+    return this.client.request<types.RegisterWebhookResponse>(
+      'POST',
+      '/sdk/v1/webhooks/',
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async listWebhooks(): Promise<types.ListWebhooksResponse> {
+    return this.client.request<types.ListWebhooksResponse>(
+      'GET',
+      '/sdk/v1/webhooks/'
+    );
+  }
+
+  /**
+   * 
+   */
+  async getWebhook(id: string): Promise<types.WebhookInfo> {
+    const path = `/sdk/v1/webhooks/${id}`;
+    return this.client.request<types.WebhookInfo>(
+      'GET',
+      path
+    );
+  }
+
+  /**
+   * 
+   */
+  async updateWebhook(id: string, request: types.UpdateWebhookRequest): Promise<types.WebhookInfo> {
+    const path = `/sdk/v1/webhooks/${id}`;
+    return this.client.request<types.WebhookInfo>(
+      'PUT',
+      path,
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async deleteWebhook(id: string): Promise<types.Response> {
+    const path = `/sdk/v1/webhooks/${id}`;
+    return this.client.request<types.Response>(
+      'DELETE',
+      path
+    );
+  }
+
+  /**
+   * 
+   */
+  async listWebhookLogs(id: string, limit?: number): Promise<types.ListWebhookLogsResponse> {
+    const path = `/sdk/v1/webhooks/${id}/logs`;
+    const query: Record<string, string> = {};
+    if (limit !== undefined) query['limit'] = String(limit);
+    return this.client.request<types.ListWebhookLogsResponse>(
+      'GET',
+      path,
+      undefined,
+      query
+    );
+  }
+
+  /**
+   * 
+   */
+  async testWebhook(id: string): Promise<types.TestWebhookResponse> {
+    const path = `/sdk/v1/webhooks/${id}/test`;
+    return this.client.request<types.TestWebhookResponse>(
+      'POST',
+      path
+    );
+  }
+
 }
 
 
@@ -267,230 +425,17 @@ class ContentResource {
 }
 
 
-class CustomersResource {
+class OrdersResource {
   constructor(private client: Levee) {}
 
 
   /**
    * 
    */
-  async getCustomerByEmail(email: string): Promise<types.SDKCustomerInfo> {
-    const path = `/sdk/v1/customers/${email}`;
-    return this.client.request<types.SDKCustomerInfo>(
-      'GET',
-      path
-    );
-  }
-
-  /**
-   * 
-   */
-  async listCustomerInvoices(email: string, limit?: number): Promise<types.ListCustomerInvoicesResponse> {
-    const path = `/sdk/v1/customers/${email}/invoices`;
-    const query: Record<string, string> = {};
-    if (limit !== undefined) query['limit'] = String(limit);
-    return this.client.request<types.ListCustomerInvoicesResponse>(
-      'GET',
-      path,
-      undefined,
-      query
-    );
-  }
-
-  /**
-   * 
-   */
-  async listCustomerOrders(email: string, limit?: number): Promise<types.ListCustomerOrdersResponse> {
-    const path = `/sdk/v1/customers/${email}/orders`;
-    const query: Record<string, string> = {};
-    if (limit !== undefined) query['limit'] = String(limit);
-    return this.client.request<types.ListCustomerOrdersResponse>(
-      'GET',
-      path,
-      undefined,
-      query
-    );
-  }
-
-  /**
-   * 
-   */
-  async listCustomerPayments(email: string, limit?: number): Promise<types.ListCustomerPaymentsResponse> {
-    const path = `/sdk/v1/customers/${email}/payments`;
-    const query: Record<string, string> = {};
-    if (limit !== undefined) query['limit'] = String(limit);
-    return this.client.request<types.ListCustomerPaymentsResponse>(
-      'GET',
-      path,
-      undefined,
-      query
-    );
-  }
-
-  /**
-   * 
-   */
-  async listCustomerSubscriptions(email: string): Promise<types.ListCustomerSubscriptionsResponse> {
-    const path = `/sdk/v1/customers/${email}/subscriptions`;
-    return this.client.request<types.ListCustomerSubscriptionsResponse>(
-      'GET',
-      path
-    );
-  }
-
-  /**
-   * 
-   */
-  async updateCustomer(id: string, request: types.SDKUpdateCustomerRequest): Promise<types.SDKCustomerInfo> {
-    const path = `/sdk/v1/customers/id/${id}`;
-    return this.client.request<types.SDKCustomerInfo>(
-      'PUT',
-      path,
-      request
-    );
-  }
-
-  /**
-   * 
-   */
-  async deleteCustomer(id: string): Promise<types.Response> {
-    const path = `/sdk/v1/customers/id/${id}`;
-    return this.client.request<types.Response>(
-      'DELETE',
-      path
-    );
-  }
-
-}
-
-
-class LlmResource {
-  constructor(private client: Levee) {}
-
-
-  /**
-   * 
-   */
-  async chat(request: types.LLMChatRequest): Promise<types.LLMChatResponse> {
-    return this.client.request<types.LLMChatResponse>(
+  async createOrder(request: types.OrderRequest): Promise<types.OrderResponse> {
+    return this.client.request<types.OrderResponse>(
       'POST',
-      '/sdk/v1/llm/chat',
-      request
-    );
-  }
-
-  /**
-   * 
-   */
-  async config(): Promise<types.LLMConfigResponse> {
-    return this.client.request<types.LLMConfigResponse>(
-      'GET',
-      '/sdk/v1/llm/config'
-    );
-  }
-
-}
-
-
-class WebhooksResource {
-  constructor(private client: Levee) {}
-
-
-  /**
-   * 
-   */
-  async registerWebhook(request: types.RegisterWebhookRequest): Promise<types.RegisterWebhookResponse> {
-    return this.client.request<types.RegisterWebhookResponse>(
-      'POST',
-      '/sdk/v1/webhooks/',
-      request
-    );
-  }
-
-  /**
-   * 
-   */
-  async listWebhooks(): Promise<types.ListWebhooksResponse> {
-    return this.client.request<types.ListWebhooksResponse>(
-      'GET',
-      '/sdk/v1/webhooks/'
-    );
-  }
-
-  /**
-   * 
-   */
-  async getWebhook(id: string): Promise<types.WebhookInfo> {
-    const path = `/sdk/v1/webhooks/${id}`;
-    return this.client.request<types.WebhookInfo>(
-      'GET',
-      path
-    );
-  }
-
-  /**
-   * 
-   */
-  async updateWebhook(id: string, request: types.UpdateWebhookRequest): Promise<types.WebhookInfo> {
-    const path = `/sdk/v1/webhooks/${id}`;
-    return this.client.request<types.WebhookInfo>(
-      'PUT',
-      path,
-      request
-    );
-  }
-
-  /**
-   * 
-   */
-  async deleteWebhook(id: string): Promise<types.Response> {
-    const path = `/sdk/v1/webhooks/${id}`;
-    return this.client.request<types.Response>(
-      'DELETE',
-      path
-    );
-  }
-
-  /**
-   * 
-   */
-  async listWebhookLogs(id: string, limit?: number): Promise<types.ListWebhookLogsResponse> {
-    const path = `/sdk/v1/webhooks/${id}/logs`;
-    const query: Record<string, string> = {};
-    if (limit !== undefined) query['limit'] = String(limit);
-    return this.client.request<types.ListWebhookLogsResponse>(
-      'GET',
-      path,
-      undefined,
-      query
-    );
-  }
-
-  /**
-   * 
-   */
-  async testWebhook(id: string): Promise<types.TestWebhookResponse> {
-    const path = `/sdk/v1/webhooks/${id}/test`;
-    return this.client.request<types.TestWebhookResponse>(
-      'POST',
-      path
-    );
-  }
-
-}
-
-
-class EventsResource {
-  constructor(private client: Levee) {}
-
-
-  /**
-   * 
-   */
-  async trackEvent(request: types.EventRequest): Promise<types.Response> {
-    return this.client.request<types.Response>(
-      'POST',
-      '/sdk/v1/events',
+      '/sdk/v1/orders',
       request
     );
   }
@@ -498,180 +443,17 @@ class EventsResource {
 }
 
 
-class ListsResource {
+class WorkshopsResource {
   constructor(private client: Levee) {}
 
 
   /**
    * 
    */
-  async subscribeToList(slug: string, request: types.SubscribeRequest): Promise<types.Response> {
-    const path = `/sdk/v1/lists/${slug}/subscribe`;
-    return this.client.request<types.Response>(
-      'POST',
-      path,
-      request
-    );
-  }
-
-  /**
-   * 
-   */
-  async unsubscribeFromList(slug: string, request: types.SubscribeRequest): Promise<types.Response> {
-    const path = `/sdk/v1/lists/${slug}/unsubscribe`;
-    return this.client.request<types.Response>(
-      'POST',
-      path,
-      request
-    );
-  }
-
-}
-
-
-class StatsResource {
-  constructor(private client: Levee) {}
-
-
-  /**
-   * 
-   */
-  async getContactStats(startDate?: string, endDate?: string, groupBy?: string): Promise<types.GetContactStatsResponse> {
-    const query: Record<string, string> = {};
-    if (startDate !== undefined) query['start_date'] = String(startDate);
-    if (endDate !== undefined) query['end_date'] = String(endDate);
-    if (groupBy !== undefined) query['group_by'] = String(groupBy);
-    return this.client.request<types.GetContactStatsResponse>(
+  async getWorkshop(slug: string): Promise<types.WorkshopEventInfo> {
+    const path = `/sdk/v1/workshops/${slug}`;
+    return this.client.request<types.WorkshopEventInfo>(
       'GET',
-      '/sdk/v1/stats/contacts',
-      undefined,
-      query
-    );
-  }
-
-  /**
-   * 
-   */
-  async getEmailStats(startDate?: string, endDate?: string, groupBy?: string): Promise<types.GetEmailStatsResponse> {
-    const query: Record<string, string> = {};
-    if (startDate !== undefined) query['start_date'] = String(startDate);
-    if (endDate !== undefined) query['end_date'] = String(endDate);
-    if (groupBy !== undefined) query['group_by'] = String(groupBy);
-    return this.client.request<types.GetEmailStatsResponse>(
-      'GET',
-      '/sdk/v1/stats/emails',
-      undefined,
-      query
-    );
-  }
-
-  /**
-   * 
-   */
-  async getStatsOverview(startDate?: string, endDate?: string): Promise<types.StatsOverviewResponse> {
-    const query: Record<string, string> = {};
-    if (startDate !== undefined) query['start_date'] = String(startDate);
-    if (endDate !== undefined) query['end_date'] = String(endDate);
-    return this.client.request<types.StatsOverviewResponse>(
-      'GET',
-      '/sdk/v1/stats/overview',
-      undefined,
-      query
-    );
-  }
-
-  /**
-   * 
-   */
-  async getRevenueStats(startDate?: string, endDate?: string, groupBy?: string): Promise<types.GetRevenueStatsResponse> {
-    const query: Record<string, string> = {};
-    if (startDate !== undefined) query['start_date'] = String(startDate);
-    if (endDate !== undefined) query['end_date'] = String(endDate);
-    if (groupBy !== undefined) query['group_by'] = String(groupBy);
-    return this.client.request<types.GetRevenueStatsResponse>(
-      'GET',
-      '/sdk/v1/stats/revenue',
-      undefined,
-      query
-    );
-  }
-
-}
-
-
-class ProductsResource {
-  constructor(private client: Levee) {}
-
-
-  /**
-   * 
-   */
-  async getProduct(slug: string): Promise<types.BillingProductInfo> {
-    const path = `/sdk/v1/products/${slug}`;
-    return this.client.request<types.BillingProductInfo>(
-      'GET',
-      path
-    );
-  }
-
-}
-
-
-class BillingResource {
-  constructor(private client: Levee) {}
-
-
-  /**
-   * 
-   */
-  async createCheckoutSession(request: types.CheckoutRequest): Promise<types.CheckoutResponse> {
-    return this.client.request<types.CheckoutResponse>(
-      'POST',
-      '/sdk/v1/billing/checkout',
-      request
-    );
-  }
-
-  /**
-   * 
-   */
-  async createCustomer(request: types.CustomerRequest): Promise<types.CustomerResponse> {
-    return this.client.request<types.CustomerResponse>(
-      'POST',
-      '/sdk/v1/billing/customers',
-      request
-    );
-  }
-
-  /**
-   * 
-   */
-  async getCustomerPortal(request: types.PortalRequest): Promise<types.PortalResponse> {
-    return this.client.request<types.PortalResponse>(
-      'POST',
-      '/sdk/v1/billing/portal',
-      request
-    );
-  }
-
-  /**
-   * 
-   */
-  async createSubscription(request: types.SubscriptionRequest): Promise<types.SubscriptionResponse> {
-    return this.client.request<types.SubscriptionResponse>(
-      'POST',
-      '/sdk/v1/billing/subscriptions',
-      request
-    );
-  }
-
-  /**
-   * 
-   */
-  async cancelSubscription(id: string): Promise<types.Response> {
-    const path = `/sdk/v1/billing/subscriptions/${id}/cancel`;
-    return this.client.request<types.Response>(
-      'POST',
       path
     );
   }
@@ -679,11 +461,11 @@ class BillingResource {
   /**
    * 
    */
-  async recordUsage(request: types.UsageRequest): Promise<types.Response> {
-    return this.client.request<types.Response>(
-      'POST',
-      '/sdk/v1/billing/usage',
-      request
+  async getWorkshopByProduct(productSlug: string): Promise<types.WorkshopEventInfo> {
+    const path = `/sdk/v1/workshops/product/${productSlug}`;
+    return this.client.request<types.WorkshopEventInfo>(
+      'GET',
+      path
     );
   }
 
@@ -724,6 +506,34 @@ class EmailsResource {
     return this.client.request<types.ListEmailEventsResponse>(
       'GET',
       path
+    );
+  }
+
+}
+
+
+class LlmResource {
+  constructor(private client: Levee) {}
+
+
+  /**
+   * 
+   */
+  async chat(request: types.LLMChatRequest): Promise<types.LLMChatResponse> {
+    return this.client.request<types.LLMChatResponse>(
+      'POST',
+      '/sdk/v1/llm/chat',
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async config(): Promise<types.LLMConfigResponse> {
+    return this.client.request<types.LLMConfigResponse>(
+      'GET',
+      '/sdk/v1/llm/config'
     );
   }
 
@@ -790,69 +600,6 @@ class SequencesResource {
       'POST',
       '/sdk/v1/sequences/unenroll',
       request
-    );
-  }
-
-}
-
-
-class SiteResource {
-  constructor(private client: Levee) {}
-
-
-  /**
-   * 
-   */
-  async listAuthors(): Promise<types.ListSDKAuthorsResponse> {
-    return this.client.request<types.ListSDKAuthorsResponse>(
-      'GET',
-      '/sdk/v1/site/authors'
-    );
-  }
-
-  /**
-   * 
-   */
-  async getAuthor(id: string): Promise<types.SDKAuthorInfo> {
-    const path = `/sdk/v1/site/authors/${id}`;
-    return this.client.request<types.SDKAuthorInfo>(
-      'GET',
-      path
-    );
-  }
-
-  /**
-   * 
-   */
-  async listNavigationMenus(location?: string): Promise<types.ListSDKNavigationMenusResponse> {
-    const query: Record<string, string> = {};
-    if (location !== undefined) query['location'] = String(location);
-    return this.client.request<types.ListSDKNavigationMenusResponse>(
-      'GET',
-      '/sdk/v1/site/menus',
-      undefined,
-      query
-    );
-  }
-
-  /**
-   * 
-   */
-  async getNavigationMenu(slug: string): Promise<types.SDKNavigationMenu> {
-    const path = `/sdk/v1/site/menus/${slug}`;
-    return this.client.request<types.SDKNavigationMenu>(
-      'GET',
-      path
-    );
-  }
-
-  /**
-   * 
-   */
-  async getSiteSettings(): Promise<types.SDKSiteSettings> {
-    return this.client.request<types.SDKSiteSettings>(
-      'GET',
-      '/sdk/v1/site/settings'
     );
   }
 
@@ -950,6 +697,55 @@ class ContactsResource {
 }
 
 
+class EventsResource {
+  constructor(private client: Levee) {}
+
+
+  /**
+   * 
+   */
+  async trackEvent(request: types.EventRequest): Promise<types.Response> {
+    return this.client.request<types.Response>(
+      'POST',
+      '/sdk/v1/events',
+      request
+    );
+  }
+
+}
+
+
+class ListsResource {
+  constructor(private client: Levee) {}
+
+
+  /**
+   * 
+   */
+  async subscribeToList(slug: string, request: types.SubscribeRequest): Promise<types.Response> {
+    const path = `/sdk/v1/lists/${slug}/subscribe`;
+    return this.client.request<types.Response>(
+      'POST',
+      path,
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async unsubscribeFromList(slug: string, request: types.SubscribeRequest): Promise<types.Response> {
+    const path = `/sdk/v1/lists/${slug}/unsubscribe`;
+    return this.client.request<types.Response>(
+      'POST',
+      path,
+      request
+    );
+  }
+
+}
+
+
 class OffersResource {
   constructor(private client: Levee) {}
 
@@ -968,34 +764,26 @@ class OffersResource {
 }
 
 
-class OrdersResource {
+class SiteResource {
   constructor(private client: Levee) {}
 
 
   /**
    * 
    */
-  async createOrder(request: types.OrderRequest): Promise<types.OrderResponse> {
-    return this.client.request<types.OrderResponse>(
-      'POST',
-      '/sdk/v1/orders',
-      request
+  async listAuthors(): Promise<types.ListSDKAuthorsResponse> {
+    return this.client.request<types.ListSDKAuthorsResponse>(
+      'GET',
+      '/sdk/v1/site/authors'
     );
   }
 
-}
-
-
-class QuizzesResource {
-  constructor(private client: Levee) {}
-
-
   /**
    * 
    */
-  async getQuiz(slug: string): Promise<types.QuizInfo> {
-    const path = `/sdk/v1/quizzes/${slug}`;
-    return this.client.request<types.QuizInfo>(
+  async getAuthor(id: string): Promise<types.SDKAuthorInfo> {
+    const path = `/sdk/v1/site/authors/${id}`;
+    return this.client.request<types.SDKAuthorInfo>(
       'GET',
       path
     );
@@ -1004,12 +792,35 @@ class QuizzesResource {
   /**
    * 
    */
-  async submitQuiz(slug: string, request: types.QuizSubmitRequest): Promise<types.QuizSubmitResponse> {
-    const path = `/sdk/v1/quizzes/${slug}/submit`;
-    return this.client.request<types.QuizSubmitResponse>(
-      'POST',
-      path,
-      request
+  async listNavigationMenus(location?: string): Promise<types.ListSDKNavigationMenusResponse> {
+    const query: Record<string, string> = {};
+    if (location !== undefined) query['location'] = String(location);
+    return this.client.request<types.ListSDKNavigationMenusResponse>(
+      'GET',
+      '/sdk/v1/site/menus',
+      undefined,
+      query
+    );
+  }
+
+  /**
+   * 
+   */
+  async getNavigationMenu(slug: string): Promise<types.SDKNavigationMenu> {
+    const path = `/sdk/v1/site/menus/${slug}`;
+    return this.client.request<types.SDKNavigationMenu>(
+      'GET',
+      path
+    );
+  }
+
+  /**
+   * 
+   */
+  async getSiteSettings(): Promise<types.SDKSiteSettings> {
+    return this.client.request<types.SDKSiteSettings>(
+      'GET',
+      '/sdk/v1/site/settings'
     );
   }
 
@@ -1085,16 +896,34 @@ class FunnelsResource {
 }
 
 
-class WorkshopsResource {
+class ProductsResource {
   constructor(private client: Levee) {}
 
 
   /**
    * 
    */
-  async getWorkshop(slug: string): Promise<types.WorkshopEventInfo> {
-    const path = `/sdk/v1/workshops/${slug}`;
-    return this.client.request<types.WorkshopEventInfo>(
+  async getProduct(slug: string): Promise<types.BillingProductInfo> {
+    const path = `/sdk/v1/products/${slug}`;
+    return this.client.request<types.BillingProductInfo>(
+      'GET',
+      path
+    );
+  }
+
+}
+
+
+class QuizzesResource {
+  constructor(private client: Levee) {}
+
+
+  /**
+   * 
+   */
+  async getQuiz(slug: string): Promise<types.QuizInfo> {
+    const path = `/sdk/v1/quizzes/${slug}`;
+    return this.client.request<types.QuizInfo>(
       'GET',
       path
     );
@@ -1103,10 +932,181 @@ class WorkshopsResource {
   /**
    * 
    */
-  async getWorkshopByProduct(productSlug: string): Promise<types.WorkshopEventInfo> {
-    const path = `/sdk/v1/workshops/product/${productSlug}`;
-    return this.client.request<types.WorkshopEventInfo>(
+  async submitQuiz(slug: string, request: types.QuizSubmitRequest): Promise<types.QuizSubmitResponse> {
+    const path = `/sdk/v1/quizzes/${slug}/submit`;
+    return this.client.request<types.QuizSubmitResponse>(
+      'POST',
+      path,
+      request
+    );
+  }
+
+}
+
+
+class BillingResource {
+  constructor(private client: Levee) {}
+
+
+  /**
+   * 
+   */
+  async createCheckoutSession(request: types.CheckoutRequest): Promise<types.CheckoutResponse> {
+    return this.client.request<types.CheckoutResponse>(
+      'POST',
+      '/sdk/v1/billing/checkout',
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async createCustomer(request: types.CustomerRequest): Promise<types.CustomerResponse> {
+    return this.client.request<types.CustomerResponse>(
+      'POST',
+      '/sdk/v1/billing/customers',
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async getCustomerPortal(request: types.PortalRequest): Promise<types.PortalResponse> {
+    return this.client.request<types.PortalResponse>(
+      'POST',
+      '/sdk/v1/billing/portal',
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async createSubscription(request: types.SubscriptionRequest): Promise<types.SubscriptionResponse> {
+    return this.client.request<types.SubscriptionResponse>(
+      'POST',
+      '/sdk/v1/billing/subscriptions',
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async cancelSubscription(id: string): Promise<types.Response> {
+    const path = `/sdk/v1/billing/subscriptions/${id}/cancel`;
+    return this.client.request<types.Response>(
+      'POST',
+      path
+    );
+  }
+
+  /**
+   * 
+   */
+  async recordUsage(request: types.UsageRequest): Promise<types.Response> {
+    return this.client.request<types.Response>(
+      'POST',
+      '/sdk/v1/billing/usage',
+      request
+    );
+  }
+
+}
+
+
+class CustomersResource {
+  constructor(private client: Levee) {}
+
+
+  /**
+   * 
+   */
+  async getCustomerByEmail(email: string): Promise<types.SDKCustomerInfo> {
+    const path = `/sdk/v1/customers/${email}`;
+    return this.client.request<types.SDKCustomerInfo>(
       'GET',
+      path
+    );
+  }
+
+  /**
+   * 
+   */
+  async listCustomerInvoices(email: string, limit?: number): Promise<types.ListCustomerInvoicesResponse> {
+    const path = `/sdk/v1/customers/${email}/invoices`;
+    const query: Record<string, string> = {};
+    if (limit !== undefined) query['limit'] = String(limit);
+    return this.client.request<types.ListCustomerInvoicesResponse>(
+      'GET',
+      path,
+      undefined,
+      query
+    );
+  }
+
+  /**
+   * 
+   */
+  async listCustomerOrders(email: string, limit?: number): Promise<types.ListCustomerOrdersResponse> {
+    const path = `/sdk/v1/customers/${email}/orders`;
+    const query: Record<string, string> = {};
+    if (limit !== undefined) query['limit'] = String(limit);
+    return this.client.request<types.ListCustomerOrdersResponse>(
+      'GET',
+      path,
+      undefined,
+      query
+    );
+  }
+
+  /**
+   * 
+   */
+  async listCustomerPayments(email: string, limit?: number): Promise<types.ListCustomerPaymentsResponse> {
+    const path = `/sdk/v1/customers/${email}/payments`;
+    const query: Record<string, string> = {};
+    if (limit !== undefined) query['limit'] = String(limit);
+    return this.client.request<types.ListCustomerPaymentsResponse>(
+      'GET',
+      path,
+      undefined,
+      query
+    );
+  }
+
+  /**
+   * 
+   */
+  async listCustomerSubscriptions(email: string): Promise<types.ListCustomerSubscriptionsResponse> {
+    const path = `/sdk/v1/customers/${email}/subscriptions`;
+    return this.client.request<types.ListCustomerSubscriptionsResponse>(
+      'GET',
+      path
+    );
+  }
+
+  /**
+   * 
+   */
+  async updateCustomer(id: string, request: types.SDKUpdateCustomerRequest): Promise<types.SDKCustomerInfo> {
+    const path = `/sdk/v1/customers/id/${id}`;
+    return this.client.request<types.SDKCustomerInfo>(
+      'PUT',
+      path,
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async deleteCustomer(id: string): Promise<types.Response> {
+    const path = `/sdk/v1/customers/id/${id}`;
+    return this.client.request<types.Response>(
+      'DELETE',
       path
     );
   }

@@ -766,6 +766,7 @@ export interface SDKAuthResponse {
   refresh_token: string;
   expires_at: string;
   customer: SDKAuthCustomerInfo;
+  checkout_url?: string;
 }
 
 
@@ -834,6 +835,9 @@ export interface SDKRegisterRequest {
   email: string;
   password: string;
   name?: string;
+  price_nickname?: string;
+  success_url?: string;
+  cancel_url?: string;
 }
 
 
