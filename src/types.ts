@@ -770,7 +770,6 @@ export interface SDKAuthResponse {
 
 
 export interface SDKChangePasswordRequest {
-  org_slug: string;
   email: string;
   current_password: string;
   new_password: string;
@@ -816,13 +815,11 @@ export interface SDKCustomerInfo {
 
 
 export interface SDKForgotPasswordRequest {
-  org_slug: string;
   email: string;
 }
 
 
 export interface SDKLoginRequest {
-  org_slug: string;
   email: string;
   password: string;
 }
@@ -834,7 +831,6 @@ export interface SDKRefreshTokenRequest {
 
 
 export interface SDKRegisterRequest {
-  org_slug: string;
   email: string;
   password: string;
   name?: string;
