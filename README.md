@@ -178,6 +178,25 @@ await levee.auth.verifyEmail({
 })
 ```
 
+### Change Password
+
+Change password while logged in (requires current password).
+
+```typescript
+const result = await levee.auth.changePassword({
+  orgSlug: 'your-org',
+  email: 'user@example.com',
+  currentPassword: 'currentPassword123',
+  newPassword: 'newSecurePassword456',
+})
+
+if (result.success) {
+  console.log('Password changed successfully')
+} else {
+  console.log('Error:', result.message)
+}
+```
+
 ---
 
 ## LLM/AI Chat
@@ -657,6 +676,36 @@ for (const p of payments) {
   if (p.receiptUrl) {
     console.log(`  Receipt: ${p.receiptUrl}`)
   }
+}
+```
+
+### Update Customer
+
+Update customer profile information.
+
+```typescript
+const customer = await levee.customers.updateCustomer('customer-123', {
+  name: 'John Smith',
+  phone: '+1-555-123-4567',
+  avatarUrl: 'https://example.com/avatar.jpg',
+  status: 'active',
+  metadata: JSON.stringify({ tier: 'premium' }),
+})
+
+console.log('Updated customer:', customer.name)
+```
+
+### Delete Customer
+
+Permanently delete a customer (GDPR compliance, hard delete).
+
+```typescript
+const result = await levee.customers.deleteCustomer('customer-123')
+
+if (result.success) {
+  console.log('Customer deleted successfully')
+} else {
+  console.log('Error:', result.message)
 }
 ```
 
@@ -1226,6 +1275,7 @@ All methods use the resource-based pattern: `levee.resource.method(...)`
 | `auth.forgotPassword(input)` | Initiate password reset |
 | `auth.resetPassword(input)` | Complete password reset |
 | `auth.verifyEmail(input)` | Verify customer email |
+| `auth.changePassword(input)` | Change password while logged in |
 | **Contacts** | |
 | `contacts.create(input)` | Create or get a contact |
 | `contacts.get(idOrEmail)` | Get contact details |
@@ -1255,6 +1305,8 @@ All methods use the resource-based pattern: `levee.resource.method(...)`
 | `customers.listOrders(email, limit?)` | List orders |
 | `customers.listSubscriptions(email)` | List subscriptions |
 | `customers.listPayments(email, limit?)` | List payments |
+| `customers.updateCustomer(id, input)` | Update customer profile |
+| `customers.deleteCustomer(id)` | Delete customer (GDPR) |
 | **Products** | |
 | `products.getProduct(slug)` | Get product info |
 | **Events** | |
