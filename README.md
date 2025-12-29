@@ -58,6 +58,17 @@ const contact = await levee.contacts.create({
 console.log('Contact created:', contact.id)
 ```
 
+## Auto-Generated Code
+
+The following files in `src/` are auto-generated from the Levee API definition and should not be edited manually:
+
+- **`types.ts`** - All TypeScript interfaces and types
+- **`client.ts`** - The main Levee client class with all resource methods
+
+To regenerate these files when the API changes, run `make gen-sdk` from the main Levee backend directory.
+
+---
+
 ## Configuration
 
 ### Basic Configuration
