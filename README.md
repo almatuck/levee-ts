@@ -7,6 +7,7 @@ Official TypeScript SDK for integrating [Levee](https://levee.com) into your Typ
 - [Installation](#installation)
 - [Quick Start](#quick-start)
 - [Configuration](#configuration)
+- [Authentication](#authentication)
 - [LLM/AI Chat](#llmai-chat)
 - [Content/CMS](#contentcms)
 - [Site Configuration](#site-configuration)
@@ -17,6 +18,12 @@ Official TypeScript SDK for integrating [Levee](https://levee.com) into your Typ
 - [Orders & Checkout](#orders--checkout)
 - [Customer Billing History](#customer-billing-history)
 - [Custom Event Tracking](#custom-event-tracking)
+- [Products](#products)
+- [Events](#events)
+- [Funnels](#funnels)
+- [Offers](#offers)
+- [Quizzes](#quizzes)
+- [Workshops](#workshops)
 - [Billing](#billing)
 - [Webhooks](#webhooks)
 - [Stats & Analytics](#stats--analytics)
@@ -87,6 +94,87 @@ For custom HTTP handling or testing:
 ```typescript
 const levee = new Levee('lv_your_api_key', {
   fetch: customFetchImplementation,
+})
+```
+
+---
+
+## Authentication
+
+The SDK provides customer authentication endpoints for building login/signup flows in your application. These endpoints are for your end-users (customers), not for SDK API access.
+
+### Register a Customer
+
+```typescript
+const result = await levee.auth.register({
+  orgSlug: 'your-org',
+  email: 'user@example.com',
+  password: 'securePassword123',
+  name: 'John Doe', // optional
+})
+
+console.log('Token:', result.token)
+console.log('Refresh Token:', result.refreshToken)
+console.log('Expires At:', result.expiresAt)
+console.log('Customer:', result.customer)
+// Customer includes: id, email, name, emailVerified, createdAt
+```
+
+### Login
+
+```typescript
+const result = await levee.auth.login({
+  orgSlug: 'your-org',
+  email: 'user@example.com',
+  password: 'securePassword123',
+})
+
+console.log('Token:', result.token)
+console.log('Customer:', result.customer.email)
+```
+
+### Refresh Token
+
+```typescript
+const result = await levee.auth.refreshToken({
+  refreshToken: 'current_refresh_token',
+})
+
+console.log('New Token:', result.token)
+console.log('New Refresh Token:', result.refreshToken)
+```
+
+### Forgot Password
+
+Initiates a password reset flow by sending a reset email to the customer.
+
+```typescript
+await levee.auth.forgotPassword({
+  orgSlug: 'your-org',
+  email: 'user@example.com',
+})
+// Email with reset link will be sent
+```
+
+### Reset Password
+
+Completes the password reset using the token from the email.
+
+```typescript
+await levee.auth.resetPassword({
+  token: 'reset_token_from_email',
+  password: 'newSecurePassword123',
+  confirmPassword: 'newSecurePassword123',
+})
+```
+
+### Verify Email
+
+Verifies a customer's email address using the token from the verification email.
+
+```typescript
+await levee.auth.verifyEmail({
+  token: 'verification_token_from_email',
 })
 ```
 
@@ -594,6 +682,183 @@ await levee.tracking.track({
 
 ---
 
+## Products
+
+Access product information and pricing.
+
+### Get a Product
+
+```typescript
+const product = await levee.products.getProduct('pro-plan')
+
+console.log('Name:', product.name)
+console.log('Description:', product.description)
+console.log('Type:', product.type)
+console.log('Category:', product.category)
+console.log('Active:', product.active)
+
+// Access pricing
+for (const price of product.prices ?? []) {
+  console.log(`Price: $${(price.unitAmountCents / 100).toFixed(2)} ${price.currency}`)
+  if (price.recurringInterval) {
+    console.log(`  Recurring: every ${price.recurringIntervalCount} ${price.recurringInterval}`)
+  }
+}
+
+// Access features
+for (const feature of product.features ?? []) {
+  console.log(`Feature: ${feature.name} - ${feature.included ? 'Included' : 'Not included'}`)
+}
+```
+
+---
+
+## Events
+
+Track custom events for analytics and automation triggers.
+
+### Track an Event
+
+```typescript
+await levee.events.trackEvent({
+  event: 'page_view',
+  email: 'user@example.com',
+  visitorId: 'visitor-123',
+  sessionId: 'session-456',
+  page: '/pricing',
+  referrer: 'https://google.com',
+  properties: {
+    source: 'organic',
+  },
+  utmSource: 'google',
+  utmMedium: 'cpc',
+  utmCampaign: 'spring-sale',
+})
+```
+
+---
+
+## Funnels
+
+Access sales funnel information for building multi-step checkout flows.
+
+### Get a Funnel Step
+
+```typescript
+const step = await levee.funnels.getFunnelStep('checkout-step-1')
+
+console.log('Step Type:', step.stepType)
+console.log('Title:', step.title)
+console.log('Headline:', step.headline)
+console.log('Product:', step.product?.name)
+
+// Check for order bump
+if (step.orderBumpProduct) {
+  console.log('Order Bump:', step.orderBumpProduct.name)
+  console.log('Order Bump Headline:', step.orderBumpHeadline)
+}
+```
+
+---
+
+## Offers
+
+Process offer accepts/declines in sales funnels (upsells, downsells, order bumps).
+
+### Process an Offer
+
+```typescript
+const result = await levee.offers.processOffer({
+  sessionId: 'checkout-session-123',
+  stepSlug: 'upsell-step',
+  accept: true,
+})
+
+if (result.success) {
+  console.log('Offer accepted!')
+  console.log('Next URL:', result.nextUrl)
+} else {
+  console.log('Message:', result.message)
+}
+```
+
+---
+
+## Quizzes
+
+Access and submit quiz responses for lead qualification and segmentation.
+
+### Get a Quiz
+
+```typescript
+const quiz = await levee.quizzes.getQuiz('lead-qualification')
+
+console.log('Title:', quiz.title)
+console.log('Description:', quiz.description)
+
+for (const question of quiz.questions) {
+  console.log(`Q: ${question.question} (${question.type})`)
+  for (const option of question.options ?? []) {
+    console.log(`  - ${option.label}: ${option.value}`)
+  }
+}
+```
+
+### Submit Quiz Answers
+
+```typescript
+const result = await levee.quizzes.submitQuiz('lead-qualification', {
+  quizSlug: 'lead-qualification',
+  email: 'user@example.com',
+  name: 'John Doe',
+  answers: {
+    q1: 'answer1',
+    q2: 'answer2',
+  },
+})
+
+console.log('Segments:', result.segments)
+console.log('Redirect URL:', result.redirectUrl)
+console.log('Lead ID:', result.leadId)
+```
+
+---
+
+## Workshops
+
+Access workshop and event information.
+
+### Get a Workshop
+
+```typescript
+const workshop = await levee.workshops.getWorkshop('spring-bootcamp')
+
+console.log('Title:', workshop.title)
+console.log('Dates:', `${workshop.startDate} to ${workshop.endDate}`)
+console.log('Time:', `${workshop.startTime} - ${workshop.endTime} ${workshop.timezone}`)
+console.log('Location:', workshop.locationType, workshop.locationDetails)
+console.log(`Price: $${(workshop.priceCents / 100).toFixed(2)} ${workshop.currency}`)
+console.log(`Seats: ${workshop.seatsRemaining} of ${workshop.maxSeats} remaining`)
+
+// Agenda
+for (const day of workshop.agenda) {
+  console.log(`Day ${day.day}: ${day.title}`)
+  for (const item of day.items) {
+    console.log(`  - ${item}`)
+  }
+}
+```
+
+### Get Workshop by Product
+
+```typescript
+const workshop = await levee.workshops.getWorkshopByProduct('bootcamp-product')
+
+console.log('Workshop:', workshop.title)
+```
+
+---
+
 ## Billing
 
 Full Stripe billing integration for customers, subscriptions, and usage-based billing.
@@ -954,6 +1219,13 @@ All methods use the resource-based pattern: `levee.resource.method(...)`
 | `options.baseURL` | Custom API base URL |
 | `options.timeout` | Request timeout in milliseconds |
 | `options.fetch` | Custom fetch implementation |
+| **Auth** | |
+| `auth.register(input)` | Register a new customer |
+| `auth.login(input)` | Login a customer |
+| `auth.refreshToken(input)` | Refresh authentication token |
+| `auth.forgotPassword(input)` | Initiate password reset |
+| `auth.resetPassword(input)` | Complete password reset |
+| `auth.verifyEmail(input)` | Verify customer email |
 | **Contacts** | |
 | `contacts.create(input)` | Create or get a contact |
 | `contacts.get(idOrEmail)` | Get contact details |
@@ -983,6 +1255,20 @@ All methods use the resource-based pattern: `levee.resource.method(...)`
 | `customers.listOrders(email, limit?)` | List orders |
 | `customers.listSubscriptions(email)` | List subscriptions |
 | `customers.listPayments(email, limit?)` | List payments |
+| **Products** | |
+| `products.getProduct(slug)` | Get product info |
+| **Events** | |
+| `events.trackEvent(input)` | Track a custom event |
+| **Funnels** | |
+| `funnels.getFunnelStep(slug)` | Get funnel step info |
+| **Offers** | |
+| `offers.processOffer(input)` | Accept/decline an offer |
+| **Quizzes** | |
+| `quizzes.getQuiz(slug)` | Get quiz info |
+| `quizzes.submitQuiz(slug, input)` | Submit quiz answers |
+| **Workshops** | |
+| `workshops.getWorkshop(slug)` | Get workshop info |
+| `workshops.getWorkshopByProduct(productSlug)` | Get workshop by product |
 | **Billing** | |
 | `billing.createCustomer(input)` | Create billing customer |
 | `billing.createCheckout(input)` | Create Stripe checkout |
@@ -1026,8 +1312,6 @@ All methods use the resource-based pattern: `levee.resource.method(...)`
 | `site.getMenu(slug)` | Get menu by slug |
 | `site.listAuthors()` | List all authors |
 | `site.getAuthor(id)` | Get author by ID |
-
-> **Note**: Some resources available in the Go SDK (Events, Funnels, Products, Quizzes, Offers, Workshops) are not yet available in the TypeScript SDK. Use the REST API directly for these features.
 
 ---
 

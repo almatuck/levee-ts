@@ -15,25 +15,26 @@ export class Levee {
   private timeout: number;
 
 
-  readonly lists: ListsResource;
+  readonly products: ProductsResource;
+  readonly billing: BillingResource;
   readonly customers: CustomersResource;
-  readonly emails: EmailsResource;
   readonly site: SiteResource;
-  readonly tracking: TrackingResource;
+  readonly webhooks: WebhooksResource;
   readonly contacts: ContactsResource;
+  readonly events: EventsResource;
   readonly funnels: FunnelsResource;
   readonly offers: OffersResource;
-  readonly orders: OrdersResource;
-  readonly workshops: WorkshopsResource;
   readonly quizzes: QuizzesResource;
-  readonly billing: BillingResource;
+  readonly workshops: WorkshopsResource;
   readonly content: ContentResource;
+  readonly auth: AuthResource;
+  readonly emails: EmailsResource;
+  readonly llm: LlmResource;
   readonly sequences: SequencesResource;
   readonly stats: StatsResource;
-  readonly events: EventsResource;
-  readonly products: ProductsResource;
-  readonly llm: LlmResource;
-  readonly webhooks: WebhooksResource;
+  readonly tracking: TrackingResource;
+  readonly lists: ListsResource;
+  readonly orders: OrdersResource;
 
   constructor(apiKey: string, options: ClientOptions = {}) {
     if (!apiKey) throw new Error('API key is required');
@@ -42,25 +43,26 @@ export class Levee {
     this.timeout = options.timeout ?? 30000;
 
 
-    this.lists = new ListsResource(this);
+    this.products = new ProductsResource(this);
+    this.billing = new BillingResource(this);
     this.customers = new CustomersResource(this);
-    this.emails = new EmailsResource(this);
     this.site = new SiteResource(this);
-    this.tracking = new TrackingResource(this);
+    this.webhooks = new WebhooksResource(this);
     this.contacts = new ContactsResource(this);
+    this.events = new EventsResource(this);
     this.funnels = new FunnelsResource(this);
     this.offers = new OffersResource(this);
-    this.orders = new OrdersResource(this);
-    this.workshops = new WorkshopsResource(this);
     this.quizzes = new QuizzesResource(this);
-    this.billing = new BillingResource(this);
+    this.workshops = new WorkshopsResource(this);
     this.content = new ContentResource(this);
+    this.auth = new AuthResource(this);
+    this.emails = new EmailsResource(this);
+    this.llm = new LlmResource(this);
     this.sequences = new SequencesResource(this);
     this.stats = new StatsResource(this);
-    this.events = new EventsResource(this);
-    this.products = new ProductsResource(this);
-    this.llm = new LlmResource(this);
-    this.webhooks = new WebhooksResource(this);
+    this.tracking = new TrackingResource(this);
+    this.lists = new ListsResource(this);
+    this.orders = new OrdersResource(this);
   }
 
   async request<T>(method: string, path: string, body?: unknown, query?: Record<string, string>): Promise<T> {
@@ -107,18 +109,35 @@ export class Levee {
 }
 
 
-class ListsResource {
+class ProductsResource {
   constructor(private client: Levee) {}
 
 
   /**
    * 
    */
-  async subscribeToList(slug: string, request: types.SubscribeRequest): Promise<types.Response> {
-    const path = `/sdk/v1/lists/${slug}/subscribe`;
-    return this.client.request<types.Response>(
+  async getProduct(slug: string): Promise<types.BillingProductInfo> {
+    const path = `/sdk/v1/products/${slug}`;
+    return this.client.request<types.BillingProductInfo>(
+      'GET',
+      path
+    );
+  }
+
+}
+
+
+class BillingResource {
+  constructor(private client: Levee) {}
+
+
+  /**
+   * 
+   */
+  async createCheckoutSession(request: types.CheckoutRequest): Promise<types.CheckoutResponse> {
+    return this.client.request<types.CheckoutResponse>(
       'POST',
-      path,
+      '/sdk/v1/billing/checkout',
       request
     );
   }
@@ -126,11 +145,54 @@ class ListsResource {
   /**
    * 
    */
-  async unsubscribeFromList(slug: string, request: types.SubscribeRequest): Promise<types.Response> {
-    const path = `/sdk/v1/lists/${slug}/unsubscribe`;
+  async createCustomer(request: types.CustomerRequest): Promise<types.CustomerResponse> {
+    return this.client.request<types.CustomerResponse>(
+      'POST',
+      '/sdk/v1/billing/customers',
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async getCustomerPortal(request: types.PortalRequest): Promise<types.PortalResponse> {
+    return this.client.request<types.PortalResponse>(
+      'POST',
+      '/sdk/v1/billing/portal',
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async createSubscription(request: types.SubscriptionRequest): Promise<types.SubscriptionResponse> {
+    return this.client.request<types.SubscriptionResponse>(
+      'POST',
+      '/sdk/v1/billing/subscriptions',
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async cancelSubscription(id: string): Promise<types.Response> {
+    const path = `/sdk/v1/billing/subscriptions/${id}/cancel`;
     return this.client.request<types.Response>(
       'POST',
-      path,
+      path
+    );
+  }
+
+  /**
+   * 
+   */
+  async recordUsage(request: types.UsageRequest): Promise<types.Response> {
+    return this.client.request<types.Response>(
+      'POST',
+      '/sdk/v1/billing/usage',
       request
     );
   }
@@ -212,46 +274,6 @@ class CustomersResource {
 }
 
 
-class EmailsResource {
-  constructor(private client: Levee) {}
-
-
-  /**
-   * 
-   */
-  async sendEmail(request: types.SendEmailRequest): Promise<types.SendEmailResponse> {
-    return this.client.request<types.SendEmailResponse>(
-      'POST',
-      '/sdk/v1/emails/',
-      request
-    );
-  }
-
-  /**
-   * 
-   */
-  async getEmailStatus(messageId: string): Promise<types.EmailStatusResponse> {
-    const path = `/sdk/v1/emails/${messageId}`;
-    return this.client.request<types.EmailStatusResponse>(
-      'GET',
-      path
-    );
-  }
-
-  /**
-   * 
-   */
-  async listEmailEvents(messageId: string): Promise<types.ListEmailEventsResponse> {
-    const path = `/sdk/v1/emails/${messageId}/events`;
-    return this.client.request<types.ListEmailEventsResponse>(
-      'GET',
-      path
-    );
-  }
-
-}
-
-
 class SiteResource {
   constructor(private client: Levee) {}
 
@@ -315,17 +337,17 @@ class SiteResource {
 }
 
 
-class TrackingResource {
+class WebhooksResource {
   constructor(private client: Levee) {}
 
 
   /**
    * 
    */
-  async trackClick(request: types.TrackClickRequest): Promise<types.Response> {
-    return this.client.request<types.Response>(
+  async registerWebhook(request: types.RegisterWebhookRequest): Promise<types.RegisterWebhookResponse> {
+    return this.client.request<types.RegisterWebhookResponse>(
       'POST',
-      '/sdk/v1/tracking/click',
+      '/sdk/v1/webhooks/',
       request
     );
   }
@@ -333,10 +355,32 @@ class TrackingResource {
   /**
    * 
    */
-  async trackConfirm(request: types.TrackConfirmRequest): Promise<types.TrackConfirmResponse> {
-    return this.client.request<types.TrackConfirmResponse>(
-      'POST',
-      '/sdk/v1/tracking/confirm',
+  async listWebhooks(): Promise<types.ListWebhooksResponse> {
+    return this.client.request<types.ListWebhooksResponse>(
+      'GET',
+      '/sdk/v1/webhooks/'
+    );
+  }
+
+  /**
+   * 
+   */
+  async getWebhook(id: string): Promise<types.WebhookInfo> {
+    const path = `/sdk/v1/webhooks/${id}`;
+    return this.client.request<types.WebhookInfo>(
+      'GET',
+      path
+    );
+  }
+
+  /**
+   * 
+   */
+  async updateWebhook(id: string, request: types.UpdateWebhookRequest): Promise<types.WebhookInfo> {
+    const path = `/sdk/v1/webhooks/${id}`;
+    return this.client.request<types.WebhookInfo>(
+      'PUT',
+      path,
       request
     );
   }
@@ -344,22 +388,37 @@ class TrackingResource {
   /**
    * 
    */
-  async trackOpen(request: types.TrackOpenRequest): Promise<types.Response> {
+  async deleteWebhook(id: string): Promise<types.Response> {
+    const path = `/sdk/v1/webhooks/${id}`;
     return this.client.request<types.Response>(
-      'POST',
-      '/sdk/v1/tracking/open',
-      request
+      'DELETE',
+      path
     );
   }
 
   /**
    * 
    */
-  async trackUnsubscribe(request: types.TrackUnsubscribeRequest): Promise<types.Response> {
-    return this.client.request<types.Response>(
+  async listWebhookLogs(id: string, limit?: number): Promise<types.ListWebhookLogsResponse> {
+    const path = `/sdk/v1/webhooks/${id}/logs`;
+    const query: Record<string, string> = {};
+    if (limit !== undefined) query['limit'] = String(limit);
+    return this.client.request<types.ListWebhookLogsResponse>(
+      'GET',
+      path,
+      undefined,
+      query
+    );
+  }
+
+  /**
+   * 
+   */
+  async testWebhook(id: string): Promise<types.TestWebhookResponse> {
+    const path = `/sdk/v1/webhooks/${id}/test`;
+    return this.client.request<types.TestWebhookResponse>(
       'POST',
-      '/sdk/v1/tracking/unsubscribe',
-      request
+      path
     );
   }
 
@@ -457,6 +516,24 @@ class ContactsResource {
 }
 
 
+class EventsResource {
+  constructor(private client: Levee) {}
+
+
+  /**
+   * 
+   */
+  async trackEvent(request: types.EventRequest): Promise<types.Response> {
+    return this.client.request<types.Response>(
+      'POST',
+      '/sdk/v1/events',
+      request
+    );
+  }
+
+}
+
+
 class FunnelsResource {
   constructor(private client: Levee) {}
 
@@ -493,53 +570,6 @@ class OffersResource {
 }
 
 
-class OrdersResource {
-  constructor(private client: Levee) {}
-
-
-  /**
-   * 
-   */
-  async createOrder(request: types.OrderRequest): Promise<types.OrderResponse> {
-    return this.client.request<types.OrderResponse>(
-      'POST',
-      '/sdk/v1/orders',
-      request
-    );
-  }
-
-}
-
-
-class WorkshopsResource {
-  constructor(private client: Levee) {}
-
-
-  /**
-   * 
-   */
-  async getWorkshop(slug: string): Promise<types.WorkshopEventInfo> {
-    const path = `/sdk/v1/workshops/${slug}`;
-    return this.client.request<types.WorkshopEventInfo>(
-      'GET',
-      path
-    );
-  }
-
-  /**
-   * 
-   */
-  async getWorkshopByProduct(productSlug: string): Promise<types.WorkshopEventInfo> {
-    const path = `/sdk/v1/workshops/product/${productSlug}`;
-    return this.client.request<types.WorkshopEventInfo>(
-      'GET',
-      path
-    );
-  }
-
-}
-
-
 class QuizzesResource {
   constructor(private client: Levee) {}
 
@@ -570,61 +600,17 @@ class QuizzesResource {
 }
 
 
-class BillingResource {
+class WorkshopsResource {
   constructor(private client: Levee) {}
 
 
   /**
    * 
    */
-  async createCheckoutSession(request: types.CheckoutRequest): Promise<types.CheckoutResponse> {
-    return this.client.request<types.CheckoutResponse>(
-      'POST',
-      '/sdk/v1/billing/checkout',
-      request
-    );
-  }
-
-  /**
-   * 
-   */
-  async createCustomer(request: types.CustomerRequest): Promise<types.CustomerResponse> {
-    return this.client.request<types.CustomerResponse>(
-      'POST',
-      '/sdk/v1/billing/customers',
-      request
-    );
-  }
-
-  /**
-   * 
-   */
-  async getCustomerPortal(request: types.PortalRequest): Promise<types.PortalResponse> {
-    return this.client.request<types.PortalResponse>(
-      'POST',
-      '/sdk/v1/billing/portal',
-      request
-    );
-  }
-
-  /**
-   * 
-   */
-  async createSubscription(request: types.SubscriptionRequest): Promise<types.SubscriptionResponse> {
-    return this.client.request<types.SubscriptionResponse>(
-      'POST',
-      '/sdk/v1/billing/subscriptions',
-      request
-    );
-  }
-
-  /**
-   * 
-   */
-  async cancelSubscription(id: string): Promise<types.Response> {
-    const path = `/sdk/v1/billing/subscriptions/${id}/cancel`;
-    return this.client.request<types.Response>(
-      'POST',
+  async getWorkshop(slug: string): Promise<types.WorkshopEventInfo> {
+    const path = `/sdk/v1/workshops/${slug}`;
+    return this.client.request<types.WorkshopEventInfo>(
+      'GET',
       path
     );
   }
@@ -632,11 +618,11 @@ class BillingResource {
   /**
    * 
    */
-  async recordUsage(request: types.UsageRequest): Promise<types.Response> {
-    return this.client.request<types.Response>(
-      'POST',
-      '/sdk/v1/billing/usage',
-      request
+  async getWorkshopByProduct(productSlug: string): Promise<types.WorkshopEventInfo> {
+    const path = `/sdk/v1/workshops/product/${productSlug}`;
+    return this.client.request<types.WorkshopEventInfo>(
+      'GET',
+      path
     );
   }
 
@@ -707,6 +693,147 @@ class ContentResource {
     return this.client.request<types.SDKContentPostInfo>(
       'GET',
       path
+    );
+  }
+
+}
+
+
+class AuthResource {
+  constructor(private client: Levee) {}
+
+
+  /**
+   * 
+   */
+  async forgotPassword(request: types.SDKForgotPasswordRequest): Promise<types.Response> {
+    return this.client.request<types.Response>(
+      'POST',
+      '/sdk/v1/auth/forgot-password',
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async login(request: types.SDKLoginRequest): Promise<types.SDKAuthResponse> {
+    return this.client.request<types.SDKAuthResponse>(
+      'POST',
+      '/sdk/v1/auth/login',
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async refreshToken(request: types.SDKRefreshTokenRequest): Promise<types.SDKAuthResponse> {
+    return this.client.request<types.SDKAuthResponse>(
+      'POST',
+      '/sdk/v1/auth/refresh',
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async register(request: types.SDKRegisterRequest): Promise<types.SDKAuthResponse> {
+    return this.client.request<types.SDKAuthResponse>(
+      'POST',
+      '/sdk/v1/auth/register',
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async resetPassword(request: types.SDKResetPasswordRequest): Promise<types.Response> {
+    return this.client.request<types.Response>(
+      'POST',
+      '/sdk/v1/auth/reset-password',
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async verifyEmail(request: types.SDKVerifyEmailRequest): Promise<types.Response> {
+    return this.client.request<types.Response>(
+      'POST',
+      '/sdk/v1/auth/verify-email',
+      request
+    );
+  }
+
+}
+
+
+class EmailsResource {
+  constructor(private client: Levee) {}
+
+
+  /**
+   * 
+   */
+  async sendEmail(request: types.SendEmailRequest): Promise<types.SendEmailResponse> {
+    return this.client.request<types.SendEmailResponse>(
+      'POST',
+      '/sdk/v1/emails/',
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async getEmailStatus(messageId: string): Promise<types.EmailStatusResponse> {
+    const path = `/sdk/v1/emails/${messageId}`;
+    return this.client.request<types.EmailStatusResponse>(
+      'GET',
+      path
+    );
+  }
+
+  /**
+   * 
+   */
+  async listEmailEvents(messageId: string): Promise<types.ListEmailEventsResponse> {
+    const path = `/sdk/v1/emails/${messageId}/events`;
+    return this.client.request<types.ListEmailEventsResponse>(
+      'GET',
+      path
+    );
+  }
+
+}
+
+
+class LlmResource {
+  constructor(private client: Levee) {}
+
+
+  /**
+   * 
+   */
+  async chat(request: types.LLMChatRequest): Promise<types.LLMChatResponse> {
+    return this.client.request<types.LLMChatResponse>(
+      'POST',
+      '/sdk/v1/llm/chat',
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async config(): Promise<types.LLMConfigResponse> {
+    return this.client.request<types.LLMConfigResponse>(
+      'GET',
+      '/sdk/v1/llm/config'
     );
   }
 
@@ -849,53 +976,28 @@ class StatsResource {
 }
 
 
-class EventsResource {
+class TrackingResource {
   constructor(private client: Levee) {}
 
 
   /**
    * 
    */
-  async trackEvent(request: types.EventRequest): Promise<types.Response> {
+  async trackClick(request: types.TrackClickRequest): Promise<types.Response> {
     return this.client.request<types.Response>(
       'POST',
-      '/sdk/v1/events',
+      '/sdk/v1/tracking/click',
       request
     );
   }
 
-}
-
-
-class ProductsResource {
-  constructor(private client: Levee) {}
-
-
   /**
    * 
    */
-  async getProduct(slug: string): Promise<types.BillingProductInfo> {
-    const path = `/sdk/v1/products/${slug}`;
-    return this.client.request<types.BillingProductInfo>(
-      'GET',
-      path
-    );
-  }
-
-}
-
-
-class LlmResource {
-  constructor(private client: Levee) {}
-
-
-  /**
-   * 
-   */
-  async chat(request: types.LLMChatRequest): Promise<types.LLMChatResponse> {
-    return this.client.request<types.LLMChatResponse>(
+  async trackConfirm(request: types.TrackConfirmRequest): Promise<types.TrackConfirmResponse> {
+    return this.client.request<types.TrackConfirmResponse>(
       'POST',
-      '/sdk/v1/llm/chat',
+      '/sdk/v1/tracking/confirm',
       request
     );
   }
@@ -903,59 +1005,39 @@ class LlmResource {
   /**
    * 
    */
-  async config(): Promise<types.LLMConfigResponse> {
-    return this.client.request<types.LLMConfigResponse>(
-      'GET',
-      '/sdk/v1/llm/config'
+  async trackOpen(request: types.TrackOpenRequest): Promise<types.Response> {
+    return this.client.request<types.Response>(
+      'POST',
+      '/sdk/v1/tracking/open',
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async trackUnsubscribe(request: types.TrackUnsubscribeRequest): Promise<types.Response> {
+    return this.client.request<types.Response>(
+      'POST',
+      '/sdk/v1/tracking/unsubscribe',
+      request
     );
   }
 
 }
 
 
-class WebhooksResource {
+class ListsResource {
   constructor(private client: Levee) {}
 
 
   /**
    * 
    */
-  async registerWebhook(request: types.RegisterWebhookRequest): Promise<types.RegisterWebhookResponse> {
-    return this.client.request<types.RegisterWebhookResponse>(
+  async subscribeToList(slug: string, request: types.SubscribeRequest): Promise<types.Response> {
+    const path = `/sdk/v1/lists/${slug}/subscribe`;
+    return this.client.request<types.Response>(
       'POST',
-      '/sdk/v1/webhooks/',
-      request
-    );
-  }
-
-  /**
-   * 
-   */
-  async listWebhooks(): Promise<types.ListWebhooksResponse> {
-    return this.client.request<types.ListWebhooksResponse>(
-      'GET',
-      '/sdk/v1/webhooks/'
-    );
-  }
-
-  /**
-   * 
-   */
-  async getWebhook(id: string): Promise<types.WebhookInfo> {
-    const path = `/sdk/v1/webhooks/${id}`;
-    return this.client.request<types.WebhookInfo>(
-      'GET',
-      path
-    );
-  }
-
-  /**
-   * 
-   */
-  async updateWebhook(id: string, request: types.UpdateWebhookRequest): Promise<types.WebhookInfo> {
-    const path = `/sdk/v1/webhooks/${id}`;
-    return this.client.request<types.WebhookInfo>(
-      'PUT',
       path,
       request
     );
@@ -964,37 +1046,30 @@ class WebhooksResource {
   /**
    * 
    */
-  async deleteWebhook(id: string): Promise<types.Response> {
-    const path = `/sdk/v1/webhooks/${id}`;
+  async unsubscribeFromList(slug: string, request: types.SubscribeRequest): Promise<types.Response> {
+    const path = `/sdk/v1/lists/${slug}/unsubscribe`;
     return this.client.request<types.Response>(
-      'DELETE',
-      path
-    );
-  }
-
-  /**
-   * 
-   */
-  async listWebhookLogs(id: string, limit?: number): Promise<types.ListWebhookLogsResponse> {
-    const path = `/sdk/v1/webhooks/${id}/logs`;
-    const query: Record<string, string> = {};
-    if (limit !== undefined) query['limit'] = String(limit);
-    return this.client.request<types.ListWebhookLogsResponse>(
-      'GET',
-      path,
-      undefined,
-      query
-    );
-  }
-
-  /**
-   * 
-   */
-  async testWebhook(id: string): Promise<types.TestWebhookResponse> {
-    const path = `/sdk/v1/webhooks/${id}/test`;
-    return this.client.request<types.TestWebhookResponse>(
       'POST',
-      path
+      path,
+      request
+    );
+  }
+
+}
+
+
+class OrdersResource {
+  constructor(private client: Levee) {}
+
+
+  /**
+   * 
+   */
+  async createOrder(request: types.OrderRequest): Promise<types.OrderResponse> {
+    return this.client.request<types.OrderResponse>(
+      'POST',
+      '/sdk/v1/orders',
+      request
     );
   }
 

@@ -752,6 +752,23 @@ export interface ResumeSequenceRequest {
 }
 
 
+export interface SDKAuthCustomerInfo {
+  id: string;
+  email: string;
+  name?: string;
+  email_verified: boolean;
+  created_at: string;
+}
+
+
+export interface SDKAuthResponse {
+  token: string;
+  refresh_token: string;
+  expires_at: string;
+  customer: SDKAuthCustomerInfo;
+}
+
+
 export interface SDKContactInfo {
   id: string;
   email: string;
@@ -790,6 +807,39 @@ export interface SDKCustomerInfo {
 }
 
 
+export interface SDKForgotPasswordRequest {
+  org_slug: string;
+  email: string;
+}
+
+
+export interface SDKLoginRequest {
+  org_slug: string;
+  email: string;
+  password: string;
+}
+
+
+export interface SDKRefreshTokenRequest {
+  refresh_token: string;
+}
+
+
+export interface SDKRegisterRequest {
+  org_slug: string;
+  email: string;
+  password: string;
+  name?: string;
+}
+
+
+export interface SDKResetPasswordRequest {
+  token: string;
+  password: string;
+  confirm_password: string;
+}
+
+
 export interface SDKSiteSettings {
   site_name?: string;
   tagline?: string;
@@ -802,6 +852,11 @@ export interface SDKSiteSettings {
   meta_title_template?: string;
   meta_description?: string;
   og_image_url?: string;
+}
+
+
+export interface SDKVerifyEmailRequest {
+  token: string;
 }
 
 
