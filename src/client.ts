@@ -99,12 +99,12 @@ export class Levee {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
+        const error = await response.json().catch(() => ({})) as { message?: string };
         throw new Error(error.message || `HTTP ${response.status}`);
       }
 
       if (response.status === 204) return undefined as T;
-      return response.json();
+      return response.json() as Promise<T>;
     } catch (err) {
       clearTimeout(timeoutId);
       throw err;
