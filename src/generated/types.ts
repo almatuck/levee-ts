@@ -769,6 +769,14 @@ export interface SDKAuthResponse {
 }
 
 
+export interface SDKChangePasswordRequest {
+  org_slug: string;
+  email: string;
+  current_password: string;
+  new_password: string;
+}
+
+
 export interface SDKContactInfo {
   id: string;
   email: string;
@@ -852,6 +860,15 @@ export interface SDKSiteSettings {
   meta_title_template?: string;
   meta_description?: string;
   og_image_url?: string;
+}
+
+
+export interface SDKUpdateCustomerRequest {
+  name?: string;
+  phone?: string;
+  avatar_url?: string;
+  status?: string;
+  metadata?: string;
 }
 
 

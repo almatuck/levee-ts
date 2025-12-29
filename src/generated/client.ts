@@ -15,26 +15,26 @@ export class Levee {
   private timeout: number;
 
 
+  readonly contacts: ContactsResource;
+  readonly funnels: FunnelsResource;
+  readonly lists: ListsResource;
+  readonly offers: OffersResource;
   readonly products: ProductsResource;
   readonly billing: BillingResource;
   readonly customers: CustomersResource;
-  readonly site: SiteResource;
-  readonly webhooks: WebhooksResource;
-  readonly contacts: ContactsResource;
+  readonly emails: EmailsResource;
   readonly events: EventsResource;
-  readonly funnels: FunnelsResource;
-  readonly offers: OffersResource;
+  readonly orders: OrdersResource;
   readonly quizzes: QuizzesResource;
   readonly workshops: WorkshopsResource;
-  readonly content: ContentResource;
   readonly auth: AuthResource;
-  readonly emails: EmailsResource;
   readonly llm: LlmResource;
-  readonly sequences: SequencesResource;
-  readonly stats: StatsResource;
+  readonly site: SiteResource;
   readonly tracking: TrackingResource;
-  readonly lists: ListsResource;
-  readonly orders: OrdersResource;
+  readonly content: ContentResource;
+  readonly stats: StatsResource;
+  readonly sequences: SequencesResource;
+  readonly webhooks: WebhooksResource;
 
   constructor(apiKey: string, options: ClientOptions = {}) {
     if (!apiKey) throw new Error('API key is required');
@@ -43,26 +43,26 @@ export class Levee {
     this.timeout = options.timeout ?? 30000;
 
 
+    this.contacts = new ContactsResource(this);
+    this.funnels = new FunnelsResource(this);
+    this.lists = new ListsResource(this);
+    this.offers = new OffersResource(this);
     this.products = new ProductsResource(this);
     this.billing = new BillingResource(this);
     this.customers = new CustomersResource(this);
-    this.site = new SiteResource(this);
-    this.webhooks = new WebhooksResource(this);
-    this.contacts = new ContactsResource(this);
+    this.emails = new EmailsResource(this);
     this.events = new EventsResource(this);
-    this.funnels = new FunnelsResource(this);
-    this.offers = new OffersResource(this);
+    this.orders = new OrdersResource(this);
     this.quizzes = new QuizzesResource(this);
     this.workshops = new WorkshopsResource(this);
-    this.content = new ContentResource(this);
     this.auth = new AuthResource(this);
-    this.emails = new EmailsResource(this);
     this.llm = new LlmResource(this);
-    this.sequences = new SequencesResource(this);
-    this.stats = new StatsResource(this);
+    this.site = new SiteResource(this);
     this.tracking = new TrackingResource(this);
-    this.lists = new ListsResource(this);
-    this.orders = new OrdersResource(this);
+    this.content = new ContentResource(this);
+    this.stats = new StatsResource(this);
+    this.sequences = new SequencesResource(this);
+    this.webhooks = new WebhooksResource(this);
   }
 
   async request<T>(method: string, path: string, body?: unknown, query?: Record<string, string>): Promise<T> {
@@ -106,6 +106,164 @@ export class Levee {
       throw err;
     }
   }
+}
+
+
+class ContactsResource {
+  constructor(private client: Levee) {}
+
+
+  /**
+   * 
+   */
+  async createContact(request: types.ContactRequest): Promise<types.ContactResponse> {
+    return this.client.request<types.ContactResponse>(
+      'POST',
+      '/sdk/v1/contacts',
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async getContact(id: string): Promise<types.SDKContactInfo> {
+    const path = `/sdk/v1/contacts/${id}`;
+    return this.client.request<types.SDKContactInfo>(
+      'GET',
+      path
+    );
+  }
+
+  /**
+   * 
+   */
+  async updateContact(id: string, request: types.UpdateContactRequest): Promise<types.SDKContactInfo> {
+    const path = `/sdk/v1/contacts/${id}`;
+    return this.client.request<types.SDKContactInfo>(
+      'PUT',
+      path,
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async listContactActivity(id: string, limit?: number): Promise<types.ListContactActivityResponse> {
+    const path = `/sdk/v1/contacts/${id}/activity`;
+    const query: Record<string, string> = {};
+    if (limit !== undefined) query['limit'] = String(limit);
+    return this.client.request<types.ListContactActivityResponse>(
+      'GET',
+      path,
+      undefined,
+      query
+    );
+  }
+
+  /**
+   * 
+   */
+  async addContactTags(id: string, request: types.AddContactTagsRequest): Promise<types.Response> {
+    const path = `/sdk/v1/contacts/${id}/tags`;
+    return this.client.request<types.Response>(
+      'POST',
+      path,
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async removeContactTags(id: string, request: types.RemoveContactTagsRequest): Promise<types.Response> {
+    const path = `/sdk/v1/contacts/${id}/tags`;
+    return this.client.request<types.Response>(
+      'DELETE',
+      path,
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async globalUnsubscribe(request: types.GlobalUnsubscribeRequest): Promise<types.Response> {
+    return this.client.request<types.Response>(
+      'POST',
+      '/sdk/v1/contacts/unsubscribe',
+      request
+    );
+  }
+
+}
+
+
+class FunnelsResource {
+  constructor(private client: Levee) {}
+
+
+  /**
+   * 
+   */
+  async getFunnelStep(slug: string): Promise<types.FunnelStepInfo> {
+    const path = `/sdk/v1/funnels/${slug}`;
+    return this.client.request<types.FunnelStepInfo>(
+      'GET',
+      path
+    );
+  }
+
+}
+
+
+class ListsResource {
+  constructor(private client: Levee) {}
+
+
+  /**
+   * 
+   */
+  async subscribeToList(slug: string, request: types.SubscribeRequest): Promise<types.Response> {
+    const path = `/sdk/v1/lists/${slug}/subscribe`;
+    return this.client.request<types.Response>(
+      'POST',
+      path,
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async unsubscribeFromList(slug: string, request: types.SubscribeRequest): Promise<types.Response> {
+    const path = `/sdk/v1/lists/${slug}/unsubscribe`;
+    return this.client.request<types.Response>(
+      'POST',
+      path,
+      request
+    );
+  }
+
+}
+
+
+class OffersResource {
+  constructor(private client: Levee) {}
+
+
+  /**
+   * 
+   */
+  async processOffer(request: types.OfferRequest): Promise<types.OfferResponse> {
+    return this.client.request<types.OfferResponse>(
+      'POST',
+      '/sdk/v1/offers',
+      request
+    );
+  }
+
 }
 
 
@@ -271,6 +429,276 @@ class CustomersResource {
     );
   }
 
+  /**
+   * 
+   */
+  async updateCustomer(id: string, request: types.SDKUpdateCustomerRequest): Promise<types.SDKCustomerInfo> {
+    const path = `/sdk/v1/customers/id/${id}`;
+    return this.client.request<types.SDKCustomerInfo>(
+      'PUT',
+      path,
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async deleteCustomer(id: string): Promise<types.Response> {
+    const path = `/sdk/v1/customers/id/${id}`;
+    return this.client.request<types.Response>(
+      'DELETE',
+      path
+    );
+  }
+
+}
+
+
+class EmailsResource {
+  constructor(private client: Levee) {}
+
+
+  /**
+   * 
+   */
+  async sendEmail(request: types.SendEmailRequest): Promise<types.SendEmailResponse> {
+    return this.client.request<types.SendEmailResponse>(
+      'POST',
+      '/sdk/v1/emails/',
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async getEmailStatus(messageId: string): Promise<types.EmailStatusResponse> {
+    const path = `/sdk/v1/emails/${messageId}`;
+    return this.client.request<types.EmailStatusResponse>(
+      'GET',
+      path
+    );
+  }
+
+  /**
+   * 
+   */
+  async listEmailEvents(messageId: string): Promise<types.ListEmailEventsResponse> {
+    const path = `/sdk/v1/emails/${messageId}/events`;
+    return this.client.request<types.ListEmailEventsResponse>(
+      'GET',
+      path
+    );
+  }
+
+}
+
+
+class EventsResource {
+  constructor(private client: Levee) {}
+
+
+  /**
+   * 
+   */
+  async trackEvent(request: types.EventRequest): Promise<types.Response> {
+    return this.client.request<types.Response>(
+      'POST',
+      '/sdk/v1/events',
+      request
+    );
+  }
+
+}
+
+
+class OrdersResource {
+  constructor(private client: Levee) {}
+
+
+  /**
+   * 
+   */
+  async createOrder(request: types.OrderRequest): Promise<types.OrderResponse> {
+    return this.client.request<types.OrderResponse>(
+      'POST',
+      '/sdk/v1/orders',
+      request
+    );
+  }
+
+}
+
+
+class QuizzesResource {
+  constructor(private client: Levee) {}
+
+
+  /**
+   * 
+   */
+  async getQuiz(slug: string): Promise<types.QuizInfo> {
+    const path = `/sdk/v1/quizzes/${slug}`;
+    return this.client.request<types.QuizInfo>(
+      'GET',
+      path
+    );
+  }
+
+  /**
+   * 
+   */
+  async submitQuiz(slug: string, request: types.QuizSubmitRequest): Promise<types.QuizSubmitResponse> {
+    const path = `/sdk/v1/quizzes/${slug}/submit`;
+    return this.client.request<types.QuizSubmitResponse>(
+      'POST',
+      path,
+      request
+    );
+  }
+
+}
+
+
+class WorkshopsResource {
+  constructor(private client: Levee) {}
+
+
+  /**
+   * 
+   */
+  async getWorkshop(slug: string): Promise<types.WorkshopEventInfo> {
+    const path = `/sdk/v1/workshops/${slug}`;
+    return this.client.request<types.WorkshopEventInfo>(
+      'GET',
+      path
+    );
+  }
+
+  /**
+   * 
+   */
+  async getWorkshopByProduct(productSlug: string): Promise<types.WorkshopEventInfo> {
+    const path = `/sdk/v1/workshops/product/${productSlug}`;
+    return this.client.request<types.WorkshopEventInfo>(
+      'GET',
+      path
+    );
+  }
+
+}
+
+
+class AuthResource {
+  constructor(private client: Levee) {}
+
+
+  /**
+   * 
+   */
+  async changePassword(request: types.SDKChangePasswordRequest): Promise<types.Response> {
+    return this.client.request<types.Response>(
+      'POST',
+      '/sdk/v1/auth/change-password',
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async forgotPassword(request: types.SDKForgotPasswordRequest): Promise<types.Response> {
+    return this.client.request<types.Response>(
+      'POST',
+      '/sdk/v1/auth/forgot-password',
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async login(request: types.SDKLoginRequest): Promise<types.SDKAuthResponse> {
+    return this.client.request<types.SDKAuthResponse>(
+      'POST',
+      '/sdk/v1/auth/login',
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async refreshToken(request: types.SDKRefreshTokenRequest): Promise<types.SDKAuthResponse> {
+    return this.client.request<types.SDKAuthResponse>(
+      'POST',
+      '/sdk/v1/auth/refresh',
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async register(request: types.SDKRegisterRequest): Promise<types.SDKAuthResponse> {
+    return this.client.request<types.SDKAuthResponse>(
+      'POST',
+      '/sdk/v1/auth/register',
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async resetPassword(request: types.SDKResetPasswordRequest): Promise<types.Response> {
+    return this.client.request<types.Response>(
+      'POST',
+      '/sdk/v1/auth/reset-password',
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async verifyEmail(request: types.SDKVerifyEmailRequest): Promise<types.Response> {
+    return this.client.request<types.Response>(
+      'POST',
+      '/sdk/v1/auth/verify-email',
+      request
+    );
+  }
+
+}
+
+
+class LlmResource {
+  constructor(private client: Levee) {}
+
+
+  /**
+   * 
+   */
+  async chat(request: types.LLMChatRequest): Promise<types.LLMChatResponse> {
+    return this.client.request<types.LLMChatResponse>(
+      'POST',
+      '/sdk/v1/llm/chat',
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async config(): Promise<types.LLMConfigResponse> {
+    return this.client.request<types.LLMConfigResponse>(
+      'GET',
+      '/sdk/v1/llm/config'
+    );
+  }
+
 }
 
 
@@ -331,6 +759,263 @@ class SiteResource {
     return this.client.request<types.SDKSiteSettings>(
       'GET',
       '/sdk/v1/site/settings'
+    );
+  }
+
+}
+
+
+class TrackingResource {
+  constructor(private client: Levee) {}
+
+
+  /**
+   * 
+   */
+  async trackClick(request: types.TrackClickRequest): Promise<types.Response> {
+    return this.client.request<types.Response>(
+      'POST',
+      '/sdk/v1/tracking/click',
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async trackConfirm(request: types.TrackConfirmRequest): Promise<types.TrackConfirmResponse> {
+    return this.client.request<types.TrackConfirmResponse>(
+      'POST',
+      '/sdk/v1/tracking/confirm',
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async trackOpen(request: types.TrackOpenRequest): Promise<types.Response> {
+    return this.client.request<types.Response>(
+      'POST',
+      '/sdk/v1/tracking/open',
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async trackUnsubscribe(request: types.TrackUnsubscribeRequest): Promise<types.Response> {
+    return this.client.request<types.Response>(
+      'POST',
+      '/sdk/v1/tracking/unsubscribe',
+      request
+    );
+  }
+
+}
+
+
+class ContentResource {
+  constructor(private client: Levee) {}
+
+
+  /**
+   * 
+   */
+  async listContentCategories(): Promise<types.ListSDKContentCategoriesResponse> {
+    return this.client.request<types.ListSDKContentCategoriesResponse>(
+      'GET',
+      '/sdk/v1/content/categories'
+    );
+  }
+
+  /**
+   * 
+   */
+  async listContentPages(page?: number, pageSize?: number): Promise<types.ListSDKContentPagesResponse> {
+    const query: Record<string, string> = {};
+    if (page !== undefined) query['page'] = String(page);
+    if (pageSize !== undefined) query['page_size'] = String(pageSize);
+    return this.client.request<types.ListSDKContentPagesResponse>(
+      'GET',
+      '/sdk/v1/content/pages',
+      undefined,
+      query
+    );
+  }
+
+  /**
+   * 
+   */
+  async getContentPage(slug: string): Promise<types.SDKContentPageInfo> {
+    const path = `/sdk/v1/content/pages/${slug}`;
+    return this.client.request<types.SDKContentPageInfo>(
+      'GET',
+      path
+    );
+  }
+
+  /**
+   * 
+   */
+  async listContentPosts(page?: number, pageSize?: number, categorySlug?: string): Promise<types.ListSDKContentPostsResponse> {
+    const query: Record<string, string> = {};
+    if (page !== undefined) query['page'] = String(page);
+    if (pageSize !== undefined) query['page_size'] = String(pageSize);
+    if (categorySlug !== undefined) query['category'] = String(categorySlug);
+    return this.client.request<types.ListSDKContentPostsResponse>(
+      'GET',
+      '/sdk/v1/content/posts',
+      undefined,
+      query
+    );
+  }
+
+  /**
+   * 
+   */
+  async getContentPost(slug: string): Promise<types.SDKContentPostInfo> {
+    const path = `/sdk/v1/content/posts/${slug}`;
+    return this.client.request<types.SDKContentPostInfo>(
+      'GET',
+      path
+    );
+  }
+
+}
+
+
+class StatsResource {
+  constructor(private client: Levee) {}
+
+
+  /**
+   * 
+   */
+  async getContactStats(startDate?: string, endDate?: string, groupBy?: string): Promise<types.GetContactStatsResponse> {
+    const query: Record<string, string> = {};
+    if (startDate !== undefined) query['start_date'] = String(startDate);
+    if (endDate !== undefined) query['end_date'] = String(endDate);
+    if (groupBy !== undefined) query['group_by'] = String(groupBy);
+    return this.client.request<types.GetContactStatsResponse>(
+      'GET',
+      '/sdk/v1/stats/contacts',
+      undefined,
+      query
+    );
+  }
+
+  /**
+   * 
+   */
+  async getEmailStats(startDate?: string, endDate?: string, groupBy?: string): Promise<types.GetEmailStatsResponse> {
+    const query: Record<string, string> = {};
+    if (startDate !== undefined) query['start_date'] = String(startDate);
+    if (endDate !== undefined) query['end_date'] = String(endDate);
+    if (groupBy !== undefined) query['group_by'] = String(groupBy);
+    return this.client.request<types.GetEmailStatsResponse>(
+      'GET',
+      '/sdk/v1/stats/emails',
+      undefined,
+      query
+    );
+  }
+
+  /**
+   * 
+   */
+  async getStatsOverview(startDate?: string, endDate?: string): Promise<types.StatsOverviewResponse> {
+    const query: Record<string, string> = {};
+    if (startDate !== undefined) query['start_date'] = String(startDate);
+    if (endDate !== undefined) query['end_date'] = String(endDate);
+    return this.client.request<types.StatsOverviewResponse>(
+      'GET',
+      '/sdk/v1/stats/overview',
+      undefined,
+      query
+    );
+  }
+
+  /**
+   * 
+   */
+  async getRevenueStats(startDate?: string, endDate?: string, groupBy?: string): Promise<types.GetRevenueStatsResponse> {
+    const query: Record<string, string> = {};
+    if (startDate !== undefined) query['start_date'] = String(startDate);
+    if (endDate !== undefined) query['end_date'] = String(endDate);
+    if (groupBy !== undefined) query['group_by'] = String(groupBy);
+    return this.client.request<types.GetRevenueStatsResponse>(
+      'GET',
+      '/sdk/v1/stats/revenue',
+      undefined,
+      query
+    );
+  }
+
+}
+
+
+class SequencesResource {
+  constructor(private client: Levee) {}
+
+
+  /**
+   * 
+   */
+  async enrollInSequence(request: types.EnrollSequenceRequest): Promise<types.EnrollSequenceResponse> {
+    return this.client.request<types.EnrollSequenceResponse>(
+      'POST',
+      '/sdk/v1/sequences/enroll',
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async getSequenceEnrollments(email: string, sequenceSlug?: string): Promise<types.ListSequenceEnrollmentsResponse> {
+    const query: Record<string, string> = {};
+    if (email !== undefined) query['email'] = String(email);
+    if (sequenceSlug !== undefined) query['sequence_slug'] = String(sequenceSlug);
+    return this.client.request<types.ListSequenceEnrollmentsResponse>(
+      'GET',
+      '/sdk/v1/sequences/enrollments',
+      undefined,
+      query
+    );
+  }
+
+  /**
+   * 
+   */
+  async pauseSequenceEnrollment(request: types.PauseSequenceRequest): Promise<types.Response> {
+    return this.client.request<types.Response>(
+      'POST',
+      '/sdk/v1/sequences/pause',
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async resumeSequenceEnrollment(request: types.ResumeSequenceRequest): Promise<types.Response> {
+    return this.client.request<types.Response>(
+      'POST',
+      '/sdk/v1/sequences/resume',
+      request
+    );
+  }
+
+  /**
+   * 
+   */
+  async unenrollFromSequence(request: types.UnenrollSequenceRequest): Promise<types.Response> {
+    return this.client.request<types.Response>(
+      'POST',
+      '/sdk/v1/sequences/unenroll',
+      request
     );
   }
 
@@ -419,657 +1104,6 @@ class WebhooksResource {
     return this.client.request<types.TestWebhookResponse>(
       'POST',
       path
-    );
-  }
-
-}
-
-
-class ContactsResource {
-  constructor(private client: Levee) {}
-
-
-  /**
-   * 
-   */
-  async createContact(request: types.ContactRequest): Promise<types.ContactResponse> {
-    return this.client.request<types.ContactResponse>(
-      'POST',
-      '/sdk/v1/contacts',
-      request
-    );
-  }
-
-  /**
-   * 
-   */
-  async getContact(id: string): Promise<types.SDKContactInfo> {
-    const path = `/sdk/v1/contacts/${id}`;
-    return this.client.request<types.SDKContactInfo>(
-      'GET',
-      path
-    );
-  }
-
-  /**
-   * 
-   */
-  async updateContact(id: string, request: types.UpdateContactRequest): Promise<types.SDKContactInfo> {
-    const path = `/sdk/v1/contacts/${id}`;
-    return this.client.request<types.SDKContactInfo>(
-      'PUT',
-      path,
-      request
-    );
-  }
-
-  /**
-   * 
-   */
-  async listContactActivity(id: string, limit?: number): Promise<types.ListContactActivityResponse> {
-    const path = `/sdk/v1/contacts/${id}/activity`;
-    const query: Record<string, string> = {};
-    if (limit !== undefined) query['limit'] = String(limit);
-    return this.client.request<types.ListContactActivityResponse>(
-      'GET',
-      path,
-      undefined,
-      query
-    );
-  }
-
-  /**
-   * 
-   */
-  async addContactTags(id: string, request: types.AddContactTagsRequest): Promise<types.Response> {
-    const path = `/sdk/v1/contacts/${id}/tags`;
-    return this.client.request<types.Response>(
-      'POST',
-      path,
-      request
-    );
-  }
-
-  /**
-   * 
-   */
-  async removeContactTags(id: string, request: types.RemoveContactTagsRequest): Promise<types.Response> {
-    const path = `/sdk/v1/contacts/${id}/tags`;
-    return this.client.request<types.Response>(
-      'DELETE',
-      path,
-      request
-    );
-  }
-
-  /**
-   * 
-   */
-  async globalUnsubscribe(request: types.GlobalUnsubscribeRequest): Promise<types.Response> {
-    return this.client.request<types.Response>(
-      'POST',
-      '/sdk/v1/contacts/unsubscribe',
-      request
-    );
-  }
-
-}
-
-
-class EventsResource {
-  constructor(private client: Levee) {}
-
-
-  /**
-   * 
-   */
-  async trackEvent(request: types.EventRequest): Promise<types.Response> {
-    return this.client.request<types.Response>(
-      'POST',
-      '/sdk/v1/events',
-      request
-    );
-  }
-
-}
-
-
-class FunnelsResource {
-  constructor(private client: Levee) {}
-
-
-  /**
-   * 
-   */
-  async getFunnelStep(slug: string): Promise<types.FunnelStepInfo> {
-    const path = `/sdk/v1/funnels/${slug}`;
-    return this.client.request<types.FunnelStepInfo>(
-      'GET',
-      path
-    );
-  }
-
-}
-
-
-class OffersResource {
-  constructor(private client: Levee) {}
-
-
-  /**
-   * 
-   */
-  async processOffer(request: types.OfferRequest): Promise<types.OfferResponse> {
-    return this.client.request<types.OfferResponse>(
-      'POST',
-      '/sdk/v1/offers',
-      request
-    );
-  }
-
-}
-
-
-class QuizzesResource {
-  constructor(private client: Levee) {}
-
-
-  /**
-   * 
-   */
-  async getQuiz(slug: string): Promise<types.QuizInfo> {
-    const path = `/sdk/v1/quizzes/${slug}`;
-    return this.client.request<types.QuizInfo>(
-      'GET',
-      path
-    );
-  }
-
-  /**
-   * 
-   */
-  async submitQuiz(slug: string, request: types.QuizSubmitRequest): Promise<types.QuizSubmitResponse> {
-    const path = `/sdk/v1/quizzes/${slug}/submit`;
-    return this.client.request<types.QuizSubmitResponse>(
-      'POST',
-      path,
-      request
-    );
-  }
-
-}
-
-
-class WorkshopsResource {
-  constructor(private client: Levee) {}
-
-
-  /**
-   * 
-   */
-  async getWorkshop(slug: string): Promise<types.WorkshopEventInfo> {
-    const path = `/sdk/v1/workshops/${slug}`;
-    return this.client.request<types.WorkshopEventInfo>(
-      'GET',
-      path
-    );
-  }
-
-  /**
-   * 
-   */
-  async getWorkshopByProduct(productSlug: string): Promise<types.WorkshopEventInfo> {
-    const path = `/sdk/v1/workshops/product/${productSlug}`;
-    return this.client.request<types.WorkshopEventInfo>(
-      'GET',
-      path
-    );
-  }
-
-}
-
-
-class ContentResource {
-  constructor(private client: Levee) {}
-
-
-  /**
-   * 
-   */
-  async listContentCategories(): Promise<types.ListSDKContentCategoriesResponse> {
-    return this.client.request<types.ListSDKContentCategoriesResponse>(
-      'GET',
-      '/sdk/v1/content/categories'
-    );
-  }
-
-  /**
-   * 
-   */
-  async listContentPages(page?: number, pageSize?: number): Promise<types.ListSDKContentPagesResponse> {
-    const query: Record<string, string> = {};
-    if (page !== undefined) query['page'] = String(page);
-    if (pageSize !== undefined) query['page_size'] = String(pageSize);
-    return this.client.request<types.ListSDKContentPagesResponse>(
-      'GET',
-      '/sdk/v1/content/pages',
-      undefined,
-      query
-    );
-  }
-
-  /**
-   * 
-   */
-  async getContentPage(slug: string): Promise<types.SDKContentPageInfo> {
-    const path = `/sdk/v1/content/pages/${slug}`;
-    return this.client.request<types.SDKContentPageInfo>(
-      'GET',
-      path
-    );
-  }
-
-  /**
-   * 
-   */
-  async listContentPosts(page?: number, pageSize?: number, categorySlug?: string): Promise<types.ListSDKContentPostsResponse> {
-    const query: Record<string, string> = {};
-    if (page !== undefined) query['page'] = String(page);
-    if (pageSize !== undefined) query['page_size'] = String(pageSize);
-    if (categorySlug !== undefined) query['category'] = String(categorySlug);
-    return this.client.request<types.ListSDKContentPostsResponse>(
-      'GET',
-      '/sdk/v1/content/posts',
-      undefined,
-      query
-    );
-  }
-
-  /**
-   * 
-   */
-  async getContentPost(slug: string): Promise<types.SDKContentPostInfo> {
-    const path = `/sdk/v1/content/posts/${slug}`;
-    return this.client.request<types.SDKContentPostInfo>(
-      'GET',
-      path
-    );
-  }
-
-}
-
-
-class AuthResource {
-  constructor(private client: Levee) {}
-
-
-  /**
-   * 
-   */
-  async forgotPassword(request: types.SDKForgotPasswordRequest): Promise<types.Response> {
-    return this.client.request<types.Response>(
-      'POST',
-      '/sdk/v1/auth/forgot-password',
-      request
-    );
-  }
-
-  /**
-   * 
-   */
-  async login(request: types.SDKLoginRequest): Promise<types.SDKAuthResponse> {
-    return this.client.request<types.SDKAuthResponse>(
-      'POST',
-      '/sdk/v1/auth/login',
-      request
-    );
-  }
-
-  /**
-   * 
-   */
-  async refreshToken(request: types.SDKRefreshTokenRequest): Promise<types.SDKAuthResponse> {
-    return this.client.request<types.SDKAuthResponse>(
-      'POST',
-      '/sdk/v1/auth/refresh',
-      request
-    );
-  }
-
-  /**
-   * 
-   */
-  async register(request: types.SDKRegisterRequest): Promise<types.SDKAuthResponse> {
-    return this.client.request<types.SDKAuthResponse>(
-      'POST',
-      '/sdk/v1/auth/register',
-      request
-    );
-  }
-
-  /**
-   * 
-   */
-  async resetPassword(request: types.SDKResetPasswordRequest): Promise<types.Response> {
-    return this.client.request<types.Response>(
-      'POST',
-      '/sdk/v1/auth/reset-password',
-      request
-    );
-  }
-
-  /**
-   * 
-   */
-  async verifyEmail(request: types.SDKVerifyEmailRequest): Promise<types.Response> {
-    return this.client.request<types.Response>(
-      'POST',
-      '/sdk/v1/auth/verify-email',
-      request
-    );
-  }
-
-}
-
-
-class EmailsResource {
-  constructor(private client: Levee) {}
-
-
-  /**
-   * 
-   */
-  async sendEmail(request: types.SendEmailRequest): Promise<types.SendEmailResponse> {
-    return this.client.request<types.SendEmailResponse>(
-      'POST',
-      '/sdk/v1/emails/',
-      request
-    );
-  }
-
-  /**
-   * 
-   */
-  async getEmailStatus(messageId: string): Promise<types.EmailStatusResponse> {
-    const path = `/sdk/v1/emails/${messageId}`;
-    return this.client.request<types.EmailStatusResponse>(
-      'GET',
-      path
-    );
-  }
-
-  /**
-   * 
-   */
-  async listEmailEvents(messageId: string): Promise<types.ListEmailEventsResponse> {
-    const path = `/sdk/v1/emails/${messageId}/events`;
-    return this.client.request<types.ListEmailEventsResponse>(
-      'GET',
-      path
-    );
-  }
-
-}
-
-
-class LlmResource {
-  constructor(private client: Levee) {}
-
-
-  /**
-   * 
-   */
-  async chat(request: types.LLMChatRequest): Promise<types.LLMChatResponse> {
-    return this.client.request<types.LLMChatResponse>(
-      'POST',
-      '/sdk/v1/llm/chat',
-      request
-    );
-  }
-
-  /**
-   * 
-   */
-  async config(): Promise<types.LLMConfigResponse> {
-    return this.client.request<types.LLMConfigResponse>(
-      'GET',
-      '/sdk/v1/llm/config'
-    );
-  }
-
-}
-
-
-class SequencesResource {
-  constructor(private client: Levee) {}
-
-
-  /**
-   * 
-   */
-  async enrollInSequence(request: types.EnrollSequenceRequest): Promise<types.EnrollSequenceResponse> {
-    return this.client.request<types.EnrollSequenceResponse>(
-      'POST',
-      '/sdk/v1/sequences/enroll',
-      request
-    );
-  }
-
-  /**
-   * 
-   */
-  async getSequenceEnrollments(email: string, sequenceSlug?: string): Promise<types.ListSequenceEnrollmentsResponse> {
-    const query: Record<string, string> = {};
-    if (email !== undefined) query['email'] = String(email);
-    if (sequenceSlug !== undefined) query['sequence_slug'] = String(sequenceSlug);
-    return this.client.request<types.ListSequenceEnrollmentsResponse>(
-      'GET',
-      '/sdk/v1/sequences/enrollments',
-      undefined,
-      query
-    );
-  }
-
-  /**
-   * 
-   */
-  async pauseSequenceEnrollment(request: types.PauseSequenceRequest): Promise<types.Response> {
-    return this.client.request<types.Response>(
-      'POST',
-      '/sdk/v1/sequences/pause',
-      request
-    );
-  }
-
-  /**
-   * 
-   */
-  async resumeSequenceEnrollment(request: types.ResumeSequenceRequest): Promise<types.Response> {
-    return this.client.request<types.Response>(
-      'POST',
-      '/sdk/v1/sequences/resume',
-      request
-    );
-  }
-
-  /**
-   * 
-   */
-  async unenrollFromSequence(request: types.UnenrollSequenceRequest): Promise<types.Response> {
-    return this.client.request<types.Response>(
-      'POST',
-      '/sdk/v1/sequences/unenroll',
-      request
-    );
-  }
-
-}
-
-
-class StatsResource {
-  constructor(private client: Levee) {}
-
-
-  /**
-   * 
-   */
-  async getContactStats(startDate?: string, endDate?: string, groupBy?: string): Promise<types.GetContactStatsResponse> {
-    const query: Record<string, string> = {};
-    if (startDate !== undefined) query['start_date'] = String(startDate);
-    if (endDate !== undefined) query['end_date'] = String(endDate);
-    if (groupBy !== undefined) query['group_by'] = String(groupBy);
-    return this.client.request<types.GetContactStatsResponse>(
-      'GET',
-      '/sdk/v1/stats/contacts',
-      undefined,
-      query
-    );
-  }
-
-  /**
-   * 
-   */
-  async getEmailStats(startDate?: string, endDate?: string, groupBy?: string): Promise<types.GetEmailStatsResponse> {
-    const query: Record<string, string> = {};
-    if (startDate !== undefined) query['start_date'] = String(startDate);
-    if (endDate !== undefined) query['end_date'] = String(endDate);
-    if (groupBy !== undefined) query['group_by'] = String(groupBy);
-    return this.client.request<types.GetEmailStatsResponse>(
-      'GET',
-      '/sdk/v1/stats/emails',
-      undefined,
-      query
-    );
-  }
-
-  /**
-   * 
-   */
-  async getStatsOverview(startDate?: string, endDate?: string): Promise<types.StatsOverviewResponse> {
-    const query: Record<string, string> = {};
-    if (startDate !== undefined) query['start_date'] = String(startDate);
-    if (endDate !== undefined) query['end_date'] = String(endDate);
-    return this.client.request<types.StatsOverviewResponse>(
-      'GET',
-      '/sdk/v1/stats/overview',
-      undefined,
-      query
-    );
-  }
-
-  /**
-   * 
-   */
-  async getRevenueStats(startDate?: string, endDate?: string, groupBy?: string): Promise<types.GetRevenueStatsResponse> {
-    const query: Record<string, string> = {};
-    if (startDate !== undefined) query['start_date'] = String(startDate);
-    if (endDate !== undefined) query['end_date'] = String(endDate);
-    if (groupBy !== undefined) query['group_by'] = String(groupBy);
-    return this.client.request<types.GetRevenueStatsResponse>(
-      'GET',
-      '/sdk/v1/stats/revenue',
-      undefined,
-      query
-    );
-  }
-
-}
-
-
-class TrackingResource {
-  constructor(private client: Levee) {}
-
-
-  /**
-   * 
-   */
-  async trackClick(request: types.TrackClickRequest): Promise<types.Response> {
-    return this.client.request<types.Response>(
-      'POST',
-      '/sdk/v1/tracking/click',
-      request
-    );
-  }
-
-  /**
-   * 
-   */
-  async trackConfirm(request: types.TrackConfirmRequest): Promise<types.TrackConfirmResponse> {
-    return this.client.request<types.TrackConfirmResponse>(
-      'POST',
-      '/sdk/v1/tracking/confirm',
-      request
-    );
-  }
-
-  /**
-   * 
-   */
-  async trackOpen(request: types.TrackOpenRequest): Promise<types.Response> {
-    return this.client.request<types.Response>(
-      'POST',
-      '/sdk/v1/tracking/open',
-      request
-    );
-  }
-
-  /**
-   * 
-   */
-  async trackUnsubscribe(request: types.TrackUnsubscribeRequest): Promise<types.Response> {
-    return this.client.request<types.Response>(
-      'POST',
-      '/sdk/v1/tracking/unsubscribe',
-      request
-    );
-  }
-
-}
-
-
-class ListsResource {
-  constructor(private client: Levee) {}
-
-
-  /**
-   * 
-   */
-  async subscribeToList(slug: string, request: types.SubscribeRequest): Promise<types.Response> {
-    const path = `/sdk/v1/lists/${slug}/subscribe`;
-    return this.client.request<types.Response>(
-      'POST',
-      path,
-      request
-    );
-  }
-
-  /**
-   * 
-   */
-  async unsubscribeFromList(slug: string, request: types.SubscribeRequest): Promise<types.Response> {
-    const path = `/sdk/v1/lists/${slug}/unsubscribe`;
-    return this.client.request<types.Response>(
-      'POST',
-      path,
-      request
-    );
-  }
-
-}
-
-
-class OrdersResource {
-  constructor(private client: Levee) {}
-
-
-  /**
-   * 
-   */
-  async createOrder(request: types.OrderRequest): Promise<types.OrderResponse> {
-    return this.client.request<types.OrderResponse>(
-      'POST',
-      '/sdk/v1/orders',
-      request
     );
   }
 
