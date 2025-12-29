@@ -1,94 +1,102 @@
-import * as grpc from '@grpc/grpc-js'
-import * as protoLoader from '@grpc/proto-loader'
-import { fileURLToPath } from 'node:url'
-import { dirname, join } from 'node:path'
-import type { ChatInput, ChatResponse, StreamChunk, ChatMessage } from '../types.js'
+import * as grpc from "@grpc/grpc-js";
+import * as protoLoader from "@grpc/proto-loader";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
+import type {
+  ChatInput,
+  ChatResponse,
+  StreamChunk,
+  ChatMessage,
+} from "../types.js";
 
-const DEFAULT_GRPC_ADDRESS = 'llm.levee.com:9889'
+const DEFAULT_GRPC_ADDRESS = "llm.levee.sh:9889";
 
 export interface LLMClientOptions {
-  grpcAddress?: string
+  grpcAddress?: string;
 }
 
 interface ProtoMessage {
-  role: string
-  content: string
+  role: string;
+  content: string;
 }
 
 interface StartChatRequest {
-  apiKey: string
-  systemPrompt?: string
-  model?: string
-  maxTokens?: number
-  temperature?: number
-  messages?: ProtoMessage[]
-  requestId?: string
+  apiKey: string;
+  systemPrompt?: string;
+  model?: string;
+  maxTokens?: number;
+  temperature?: number;
+  messages?: ProtoMessage[];
+  requestId?: string;
 }
 
 interface UserMessageRequest {
-  content: string
+  content: string;
 }
 
 interface AbortRequestMessage {
-  reason?: string
+  reason?: string;
 }
 
 interface ChatRequestMessage {
-  start?: StartChatRequest
-  message?: UserMessageRequest
-  abort?: AbortRequestMessage
+  start?: StartChatRequest;
+  message?: UserMessageRequest;
+  abort?: AbortRequestMessage;
 }
 
 interface SessionStartedResponse {
-  sessionId: string
-  provider: string
-  model: string
+  sessionId: string;
+  provider: string;
+  model: string;
 }
 
 interface ContentChunkResponse {
-  content: string
-  index: number
+  content: string;
+  index: number;
 }
 
 interface CompletionResponseMessage {
-  fullContent: string
-  stopReason: string
-  inputTokens: number
-  outputTokens: number
-  costUsd: number
-  latencyMs: number
+  fullContent: string;
+  stopReason: string;
+  inputTokens: number;
+  outputTokens: number;
+  costUsd: number;
+  latencyMs: number;
 }
 
 interface ErrorResponseMessage {
-  code: string
-  message: string
-  retryable: boolean
+  code: string;
+  message: string;
+  retryable: boolean;
 }
 
 interface ChatResponseMessage {
-  sessionStarted?: SessionStartedResponse
-  chunk?: ContentChunkResponse
-  completion?: CompletionResponseMessage
-  error?: ErrorResponseMessage
-  aborted?: { reason: string }
+  sessionStarted?: SessionStartedResponse;
+  chunk?: ContentChunkResponse;
+  completion?: CompletionResponseMessage;
+  error?: ErrorResponseMessage;
+  aborted?: { reason: string };
 }
 
-type StreamCallback = (chunk: StreamChunk) => void | Promise<void>
+type StreamCallback = (chunk: StreamChunk) => void | Promise<void>;
 
 interface LLMServiceClient {
-  Chat(): grpc.ClientDuplexStream<ChatRequestMessage, ChatResponseMessage>
+  Chat(): grpc.ClientDuplexStream<ChatRequestMessage, ChatResponseMessage>;
   SimpleChat(
     request: {
-      apiKey: string
-      messages: ProtoMessage[]
-      systemPrompt?: string
-      model?: string
-      maxTokens?: number
-      temperature?: number
-      requestId?: string
+      apiKey: string;
+      messages: ProtoMessage[];
+      systemPrompt?: string;
+      model?: string;
+      maxTokens?: number;
+      temperature?: number;
+      requestId?: string;
     },
-    callback: (error: grpc.ServiceError | null, response: CompletionResponseMessage) => void
-  ): void
+    callback: (
+      error: grpc.ServiceError | null,
+      response: CompletionResponseMessage
+    ) => void
+  ): void;
 }
 
 /**
@@ -113,25 +121,25 @@ interface LLMServiceClient {
  * ```
  */
 export class LLMClient {
-  private readonly apiKey: string
-  private readonly grpcAddress: string
-  private client: LLMServiceClient | null = null
+  private readonly apiKey: string;
+  private readonly grpcAddress: string;
+  private client: LLMServiceClient | null = null;
 
   constructor(apiKey: string, options: LLMClientOptions = {}) {
     if (!apiKey) {
-      throw new Error('API key is required')
+      throw new Error("API key is required");
     }
-    this.apiKey = apiKey
-    this.grpcAddress = options.grpcAddress ?? DEFAULT_GRPC_ADDRESS
+    this.apiKey = apiKey;
+    this.grpcAddress = options.grpcAddress ?? DEFAULT_GRPC_ADDRESS;
   }
 
   private async getClient(): Promise<LLMServiceClient> {
-    if (this.client) return this.client
+    if (this.client) return this.client;
 
     // Get the proto file path relative to this module
-    const __filename = fileURLToPath(import.meta.url)
-    const __dirname = dirname(__filename)
-    const protoPath = join(__dirname, '..', '..', 'proto', 'llm.proto')
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
+    const protoPath = join(__dirname, "..", "..", "proto", "llm.proto");
 
     const packageDefinition = await protoLoader.load(protoPath, {
       keepCase: false,
@@ -139,31 +147,39 @@ export class LLMClient {
       enums: String,
       defaults: true,
       oneofs: true,
-    })
+    });
 
     const proto = grpc.loadPackageDefinition(packageDefinition) as unknown as {
-      llm: { LLMService: new (address: string, credentials: grpc.ChannelCredentials) => LLMServiceClient }
-    }
+      llm: {
+        LLMService: new (
+          address: string,
+          credentials: grpc.ChannelCredentials
+        ) => LLMServiceClient;
+      };
+    };
 
     this.client = new proto.llm.LLMService(
       this.grpcAddress,
       grpc.credentials.createSsl()
-    )
+    );
 
-    return this.client
+    return this.client;
   }
 
   /**
    * Simple (non-streaming) chat using gRPC.
    */
   async chat(input: ChatInput): Promise<ChatResponse> {
-    const client = await this.getClient()
+    const client = await this.getClient();
 
     return new Promise((resolve, reject) => {
       client.SimpleChat(
         {
           apiKey: this.apiKey,
-          messages: input.messages.map((m) => ({ role: m.role, content: m.content })),
+          messages: input.messages.map((m) => ({
+            role: m.role,
+            content: m.content,
+          })),
           systemPrompt: input.systemPrompt,
           model: input.model,
           maxTokens: input.maxTokens,
@@ -171,8 +187,8 @@ export class LLMClient {
         },
         (error, response) => {
           if (error) {
-            reject(new Error(error.message))
-            return
+            reject(new Error(error.message));
+            return;
           }
           resolve({
             content: response.fullContent,
@@ -182,10 +198,10 @@ export class LLMClient {
             costUsd: response.costUsd,
             latencyMs: response.latencyMs,
             stopReason: response.stopReason,
-          })
+          });
         }
-      )
-    })
+      );
+    });
   }
 
   /**
@@ -199,9 +215,11 @@ export class LLMClient {
    * }
    * ```
    */
-  async *chatStream(input: ChatInput): AsyncGenerator<StreamChunk, ChatResponse, unknown> {
-    const client = await this.getClient()
-    const stream = client.Chat()
+  async *chatStream(
+    input: ChatInput
+  ): AsyncGenerator<StreamChunk, ChatResponse, unknown> {
+    const client = await this.getClient();
+    const stream = client.Chat();
 
     // Send start request
     stream.write({
@@ -211,29 +229,34 @@ export class LLMClient {
         model: input.model,
         maxTokens: input.maxTokens,
         temperature: input.temperature,
-        messages: input.messages.map((m) => ({ role: m.role, content: m.content })),
+        messages: input.messages.map((m) => ({
+          role: m.role,
+          content: m.content,
+        })),
       },
-    } as ChatRequestMessage)
+    } as ChatRequestMessage);
 
-    let completion: ChatResponse | null = null
-    let error: Error | null = null
+    let completion: ChatResponse | null = null;
+    let error: Error | null = null;
 
     // Create a promise-based iterator
-    const chunks: StreamChunk[] = []
-    let resolveNext: ((value: IteratorResult<StreamChunk, ChatResponse>) => void) | null = null
-    let done = false
+    const chunks: StreamChunk[] = [];
+    let resolveNext:
+      | ((value: IteratorResult<StreamChunk, ChatResponse>) => void)
+      | null = null;
+    let done = false;
 
-    stream.on('data', (response: ChatResponseMessage) => {
+    stream.on("data", (response: ChatResponseMessage) => {
       if (response.chunk) {
         const chunk: StreamChunk = {
           content: response.chunk.content,
           index: response.chunk.index,
-        }
+        };
         if (resolveNext) {
-          resolveNext({ value: chunk, done: false })
-          resolveNext = null
+          resolveNext({ value: chunk, done: false });
+          resolveNext = null;
         } else {
-          chunks.push(chunk)
+          chunks.push(chunk);
         }
       } else if (response.completion) {
         completion = {
@@ -243,65 +266,70 @@ export class LLMClient {
           costUsd: response.completion.costUsd,
           latencyMs: response.completion.latencyMs,
           stopReason: response.completion.stopReason,
-        }
-        done = true
+        };
+        done = true;
         if (resolveNext) {
-          resolveNext({ value: completion, done: true })
-          resolveNext = null
+          resolveNext({ value: completion, done: true });
+          resolveNext = null;
         }
       } else if (response.error) {
-        error = new Error(`${response.error.code}: ${response.error.message}`)
-        done = true
+        error = new Error(`${response.error.code}: ${response.error.message}`);
+        done = true;
         if (resolveNext) {
-          resolveNext({ value: undefined as unknown as StreamChunk, done: true })
-          resolveNext = null
+          resolveNext({
+            value: undefined as unknown as StreamChunk,
+            done: true,
+          });
+          resolveNext = null;
         }
       }
-    })
+    });
 
-    stream.on('error', (err: Error) => {
-      error = err
-      done = true
+    stream.on("error", (err: Error) => {
+      error = err;
+      done = true;
       if (resolveNext) {
-        resolveNext({ value: undefined as unknown as StreamChunk, done: true })
-        resolveNext = null
+        resolveNext({ value: undefined as unknown as StreamChunk, done: true });
+        resolveNext = null;
       }
-    })
+    });
 
-    stream.on('end', () => {
-      done = true
+    stream.on("end", () => {
+      done = true;
       if (resolveNext) {
-        resolveNext({ value: completion as ChatResponse, done: true })
-        resolveNext = null
+        resolveNext({ value: completion as ChatResponse, done: true });
+        resolveNext = null;
       }
-    })
+    });
 
     // Yield chunks as they arrive
     while (!done) {
       if (chunks.length > 0) {
-        yield chunks.shift()!
+        yield chunks.shift()!;
       } else {
-        const result = await new Promise<IteratorResult<StreamChunk, ChatResponse>>((resolve) => {
-          resolveNext = resolve
-        })
+        const result = await new Promise<
+          IteratorResult<StreamChunk, ChatResponse>
+        >((resolve) => {
+          resolveNext = resolve;
+        });
         if (result.done) {
-          if (error) throw error
-          return result.value as ChatResponse
+          if (error) throw error;
+          return result.value as ChatResponse;
         }
-        yield result.value
+        yield result.value;
       }
     }
 
     // Drain remaining chunks
     while (chunks.length > 0) {
-      yield chunks.shift()!
+      yield chunks.shift()!;
     }
 
-    if (error) throw error
+    if (error) throw error;
     if (!completion) {
-      throw new Error('Stream ended without completion')
+      throw new Error("Stream ended without completion");
     }
-    return completion
+    return completion;
   }
 
   /**
@@ -320,18 +348,18 @@ export class LLMClient {
     input: ChatInput,
     onChunk: StreamCallback
   ): Promise<ChatResponse> {
-    let response: ChatResponse | undefined
+    let response: ChatResponse | undefined;
     for await (const chunk of this.chatStream(input)) {
-      await onChunk(chunk)
+      await onChunk(chunk);
     }
     // The generator returns the final response
-    const gen = this.chatStream(input)
-    let result = await gen.next()
+    const gen = this.chatStream(input);
+    let result = await gen.next();
     while (!result.done) {
-      await onChunk(result.value)
-      result = await gen.next()
+      await onChunk(result.value);
+      result = await gen.next();
     }
-    return result.value
+    return result.value;
   }
 
   /**
@@ -339,8 +367,8 @@ export class LLMClient {
    */
   close(): void {
     if (this.client) {
-      grpc.closeClient(this.client as unknown as grpc.Client)
-      this.client = null
+      grpc.closeClient(this.client as unknown as grpc.Client);
+      this.client = null;
     }
   }
 }
