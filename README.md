@@ -1025,6 +1025,43 @@ const portal = await levee.billing.getPortal({
 // Redirect to portal.portalUrl
 ```
 
+### Embedded Checkout
+
+Embed Stripe checkout directly on your site instead of redirecting to Stripe's hosted page:
+
+```typescript
+const checkout = await levee.billing.createCheckout({
+  customerEmail: "user@example.com",
+  lineItems: [{ priceId: "price_xxx", quantity: 1 }],
+  mode: "payment",
+  successUrl: "https://yourapp.com/success",
+  embedded: true,
+  returnUrl: "https://yourapp.com/checkout/complete?session_id={CHECKOUT_SESSION_ID}",
+});
+
+// Use checkout.clientSecret with Stripe.js
+```
+
+**Frontend integration:**
+
+```html
+<div id="checkout"></div>
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+  const stripe = Stripe("pk_live_xxx");
+  stripe.initEmbeddedCheckout({ clientSecret: "{{clientSecret}}" }).then((checkout) => {
+    checkout.mount("#checkout");
+  });
+</script>
+```
+
+Benefits of embedded checkout:
+
+- Keep users on your domain throughout the purchase flow
+- Full control over the surrounding UI/UX
+- Better conversion rates vs. redirect-based checkout
+- Works with both one-time payments and subscriptions
+
 ---
 
 ## Webhooks
