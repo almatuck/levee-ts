@@ -690,8 +690,18 @@ export interface OrgMember {
 }
 
 
+export interface PendingInvite {
+  email: string;
+  name: string;
+  role: string;
+  invited_at: string;
+  expires_at: string;
+}
+
+
 export interface OrgMembersResponse {
   members: OrgMember[];
+  pending_invites: PendingInvite[];
   total: number;
 }
 
