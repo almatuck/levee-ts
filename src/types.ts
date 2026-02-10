@@ -111,13 +111,16 @@ export interface CheckoutRequest {
   line_items: CheckoutItem[];
   mode: string;
   success_url: string;
-  cancel_url: string;
+  cancel_url?: string;
+  embedded?: boolean;
+  return_url?: string;
 }
 
 
 export interface CheckoutResponse {
   session_id: string;
-  checkout_url: string;
+  checkout_url?: string;
+  client_secret?: string;
 }
 
 
@@ -661,6 +664,22 @@ export interface OrderResponse {
 }
 
 
+export interface OrgMember {
+  id: string;
+  email: string;
+  name: string;
+  avatar_url?: string;
+  role: string;
+  joined_at: string;
+}
+
+
+export interface OrgMembersResponse {
+  members: OrgMember[];
+  total: number;
+}
+
+
 export interface PauseSequenceRequest {
   email: string;
   sequence_slug: string;
@@ -758,6 +777,8 @@ export interface SDKAuthCustomerInfo {
   name?: string;
   email_verified: boolean;
   created_at: string;
+  role?: string;
+  org_id?: string;
 }
 
 
@@ -817,6 +838,13 @@ export interface SDKCustomerInfo {
 
 export interface SDKForgotPasswordRequest {
   email: string;
+  reset_path?: string;
+}
+
+
+export interface SDKInviteTeamMemberRequest {
+  email: string;
+  role: string;
 }
 
 
@@ -869,6 +897,11 @@ export interface SDKUpdateCustomerRequest {
   avatar_url?: string;
   status?: string;
   metadata?: string;
+}
+
+
+export interface SDKUpdateTeamMemberRoleRequest {
+  new_role: string;
 }
 
 
